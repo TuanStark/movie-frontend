@@ -3,6 +3,8 @@ import './globals.css';
 import { Inter, Poppins } from 'next/font/google';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import AuthProvider from '@/components/providers/AuthProvider';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -32,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
+      <body>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}

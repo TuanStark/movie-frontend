@@ -21,7 +21,7 @@ export default function ArticleDetailPage() {
     const articleId = parseInt(id as string);
     const foundArticle = articles.find(a => a.id === articleId);
     
-    if (foundArticle) {
+    if (foundArticle) {   
       setArticle(foundArticle);
       
       // Tìm các bài viết liên quan (cùng category)
@@ -45,7 +45,7 @@ export default function ArticleDetailPage() {
   
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Article Header */}
       <div className="relative h-[50vh] md:h-[60vh]">

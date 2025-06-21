@@ -80,7 +80,7 @@ export default function BookingPage({ params }: PageProps) {
   if (!movie || !theater || !showtime) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flex justify-center items-center h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
         </div>
@@ -91,7 +91,7 @@ export default function BookingPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <BackgroundGradient />
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Movie header */}
       <div className="relative">

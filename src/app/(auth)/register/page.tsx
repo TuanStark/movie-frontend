@@ -101,7 +101,7 @@ export default function RegisterPage() {
     // In a real app, you would make an API call to create the user
     setTimeout(() => {
       setIsLoading(false);
-      router.push('/auth/login?registered=true');
+      router.push('/?registered=true');
     }, 1500);
   };
   
@@ -369,7 +369,7 @@ export default function RegisterPage() {
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                <Link href="/login" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
                   Sign in
                 </Link>
               </p>

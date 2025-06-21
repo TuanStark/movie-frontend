@@ -45,7 +45,7 @@ export default function TheatersPage() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <BackgroundGradient />
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Page Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 py-16">

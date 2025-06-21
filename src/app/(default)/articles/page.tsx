@@ -27,7 +27,7 @@ export default function ArticlesPage() {
   
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">

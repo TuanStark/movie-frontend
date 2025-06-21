@@ -74,7 +74,7 @@ export default function MovieDetail({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Movie backdrop */}
       <div className="relative h-72 md:h-96 w-full">

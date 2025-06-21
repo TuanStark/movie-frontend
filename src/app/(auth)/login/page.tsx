@@ -76,7 +76,6 @@ export default function LoginPage() {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <Navbar />
       <BackgroundGradient />
       
       <div className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
@@ -131,7 +130,7 @@ export default function LoginPage() {
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex justify-between">
                   <span>Password</span>
-                  <Link href="/auth/forgot-password" className="text-primary-600 dark:text-primary-400 hover:underline text-sm font-normal">
+                  <Link href="/forgot-password" className="text-primary-600 dark:text-primary-400 hover:underline text-sm font-normal">
                     Forgot password?
                   </Link>
                 </label>
@@ -212,7 +211,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Don&apos;t have an account?{" "}
-                <Link href="/auth/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                <Link href="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
                   Sign up
                 </Link>
               </p>
