@@ -9,7 +9,8 @@ const nextConfig = {
       'encrypted-tbn0.gstatic.com',
       'poundarts.org.uk',
       'cdn-media.sforum.vn',
-      'cdn-media.sforum.vn'], // For movie poster images and article images
+      'cdn-media.sforum.vn',
+      'www.google.com'], // For movie poster images and article images
   },
 };
 

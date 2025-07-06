@@ -15,7 +15,7 @@ export default function LoginPage() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
   const justRegistered = searchParams.get("registered");
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  
+
   useEffect(() => {
     if (justRegistered === 'true') {
       setShowSuccessMessage(true);
@@ -34,28 +34,28 @@ export default function LoginPage() {
       return () => clearTimeout(timer);
     }
   }, [justRegistered]);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    
+
     // Clear error when typing
     if (formError) {
       setFormError("");
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setFormError("");
-    
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
         email: formData.email,
         password: formData.password,
       });
-      
+
       if (result?.error) {
         setFormError("Invalid email or password");
         setIsLoading(false);
@@ -69,15 +69,15 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-  
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <BackgroundGradient />
-      
+
       <div className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 shadow-2xl rounded-3xl overflow-hidden">
           {/* Left side - Form */}
@@ -86,7 +86,7 @@ export default function LoginPage() {
               <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Welcome back!</h1>
               <p className="text-gray-600 dark:text-gray-400">Sign in to continue to MovieTix</p>
             </div>
-            
+
             {showSuccessMessage && (
               <div className="mb-6 p-3 rounded bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center animate-fade-in">
                 <div className="shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center mr-3">
@@ -95,14 +95,14 @@ export default function LoginPage() {
                 <p>Registration successful! Please log in with your new account.</p>
               </div>
             )}
-            
+
             {(error || formError) && (
               <div className="mb-6 p-3 rounded bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center animate-fade-in">
                 <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
                 <p>{error === "CredentialsSignin" ? "Invalid email or password" : formError || "Authentication error"}</p>
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
               <div>
@@ -125,14 +125,14 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-              
+
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex justify-between">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex justify-between">
                   <span>Password</span>
-                  <Link href="/forgot-password" className="text-primary-600 dark:text-primary-400 hover:underline text-sm font-normal">
+                  {/* <Link href="/forgot-password" className="text-primary-600 dark:text-primary-400 hover:underline text-sm font-normal">
                     Forgot password?
-                  </Link>
+                  </Link> */}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -148,9 +148,9 @@ export default function LoginPage() {
                     value={formData.password}
                     onChange={handleChange}
                   />
-                  <button 
-                    type="button" 
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center" 
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={togglePasswordVisibility}
                   >
                     {showPassword ? (
@@ -171,8 +171,8 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              
-              <div className="flex items-center">
+
+              {/* <div className="flex items-center">
                 <input
                   id="remember-me"
                   name="remember-me"
@@ -182,9 +182,9 @@ export default function LoginPage() {
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                   Remember me
                 </label>
-              </div>
-              
-              <div>
+              </div> */}
+
+              <div className="space-y-3">
                 <button
                   type="submit"
                   className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -205,25 +205,59 @@ export default function LoginPage() {
                     </>
                   )}
                 </button>
+                {/* Google Sign-In Button */}
+                <button
+                  type="button"
+                  className="w-full bg-white hover:bg-gray-100 text-gray-900 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 border border-gray-300"
+                  disabled={isLoading}
+                // onClick={() => {
+                //   // Add Google Sign-In logic here (e.g., redirect to Google OAuth)
+                //   window.location.href = '/api/auth/google';
+                // }}
+                >
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-5 w-5 text-gray-900"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      <Image
+                        src="/logo-gg.png"
+                        alt="Google Logo"
+                        width={30}
+                        height={30}
+                        className="object-contain bg-white"
+                      />
+                      Sign In with Google
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-center mt-4">
+                  Don&apos;t have an account?{" "}
+                  <Link href="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                    Sign up
+                  </Link>
+                </p>
               </div>
             </form>
-            
-            <div className="mt-6 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
-                Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                  Sign up
-                </Link>
-              </p>
-            </div>
-            
-            <div className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <p className="mb-1">Demo accounts:</p>
-              <p className="mb-1"><span className="font-medium">User:</span> john@example.com / password123</p>
-              <p><span className="font-medium">Admin:</span> admin@example.com / admin123</p>
-            </div>
           </div>
-          
+
           {/* Right side - Image */}
           <div className="hidden md:block bg-gradient-to-br from-primary-500 to-primary-800 relative overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center p-8">
