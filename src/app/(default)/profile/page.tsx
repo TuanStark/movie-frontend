@@ -63,7 +63,7 @@ export default function ProfilePage() {
   if (status === "loading" || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="max-w-7xl mx-auto px-4 py-12 text-center">
           Loading profile...
         </div>

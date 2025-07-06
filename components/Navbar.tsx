@@ -1,21 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { Moon, Sun, Menu, X, User, LogIn } from "lucide-react";
+import { Moon, Sun, Menu, X, User, LogIn, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "./providers/ThemeProvider";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 
 export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { data: session, status } = useSession();
-  
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  
+
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
+  };
+  const handleLogout = () => {
+    signOut();
   };
 
   return (
@@ -61,8 +66,11 @@ export default function Navbar() {
 
             {/* Auth buttons */}
             {status === "authenticated" && session?.user ? (
-              <div className="flex items-center space-x-3">
-                <Link 
+              <div className="flex items-center space-x-3"
+                onMouseEnter={() => setIsOpen(true)}
+                onMouseLeave={() => setIsOpen(false)}
+              >
+                <Link
                   href="/profile"
                   className="flex items-center space-x-1"
                 >
@@ -82,6 +90,31 @@ export default function Navbar() {
                     {session.user.name?.split(" ")[0] || "Account"}
                   </span>
                 </Link>
+                {isOpen && (
+                  <div className="absolute top-[60%] right-[15%] mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+
+                      <div className="flex items-center gap-2">
+                        <User size={18} className="mr-2" />
+                        Hồ sơ cá nhân
+                      </div>
+                    </Link>
+                    <Link
+                      href="/logout"
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <button onClick={() => signOut()}>
+                        <div className="flex items-center gap-2">
+                          <LogOut size={18} className="mr-2" />
+                          Đăng xuất
+                        </div>
+                      </button>
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-3">
@@ -126,11 +159,11 @@ export default function Navbar() {
             <Link href="/theaters" className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400">
               Theaters
             </Link>
-            
+
             {/* Mobile auth buttons */}
             {status === "authenticated" && session?.user ? (
-              <Link 
-                href="/profile" 
+              <Link
+                href="/profile"
                 className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400"
               >
                 <User size={18} className="mr-2" />
@@ -138,15 +171,15 @@ export default function Navbar() {
               </Link>
             ) : (
               <>
-                <Link 
-                  href="/auth/login" 
+                <Link
+                  href="/auth/login"
                   className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   <LogIn size={18} className="mr-2" />
                   <span>Log In</span>
                 </Link>
-                <Link 
-                  href="/auth/register" 
+                <Link
+                  href="/auth/register"
                   className="flex items-center px-3 py-2 rounded-md text-base font-medium text-primary-600 dark:text-primary-400"
                 >
                   <User size={18} className="mr-2" />
@@ -154,7 +187,7 @@ export default function Navbar() {
                 </Link>
               </>
             )}
-            
+
             <button
               onClick={toggleTheme}
               className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400"
