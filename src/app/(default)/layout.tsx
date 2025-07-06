@@ -19,7 +19,6 @@ export default function DefaultLayout({
 }: {
     children: React.ReactNode;
 }) {
-    // const { data: session } = useSession();
     return (
         <>
         <AuthProvider>
