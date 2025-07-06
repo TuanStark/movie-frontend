@@ -11,8 +11,8 @@ export default auth((req) => {
                           nextUrl.pathname.startsWith('/booking');
 
   // Define auth routes
-  const isAuthRoute = nextUrl.pathname.startsWith('/auth/login') ||
-                     nextUrl.pathname.startsWith('/auth/register');
+  const isAuthRoute = nextUrl.pathname.startsWith('/login') ||
+                     nextUrl.pathname.startsWith('/register');
 
   // Redirect logged-in users away from auth pages
   if (isAuthRoute && isLoggedIn) {
@@ -21,7 +21,7 @@ export default auth((req) => {
 
   // Redirect non-logged-in users to login for protected routes
   if (isProtectedRoute && !isLoggedIn) {
-    return Response.redirect(new URL('/auth/login', nextUrl));
+    return Response.redirect(new URL('/login', nextUrl));
   }
 
   return;

@@ -2,9 +2,28 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { movies } from "@/lib/mock-data";
+import { Movie } from "@/types/global-type";
+import { useEffect, useState } from "react";
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Movie>>);
 
 export const UpcomingReleasesSection = () => {
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const { data, error, isLoading } = useSWR<GenericResponse<Movie>>(
+    `${process.env.NEXT_PUBLIC_API_URL}/movies?limit=8&sortOrder=desc`, // Thay bằng endpoint thực tế
+    fetcher,
+    {
+      revalidateIfStale: false,
+      refreshInterval: 3000,
+    }
+  );
+
+  useEffect(() => {
+    if (data) {
+      setMovies(data.data.data);
+    }
+  }, [data]);
   const upcomingMovies = movies.filter(movie => movie.upcoming);
 
   return (

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MovieCard from "@/components/MovieCard";
-import { movies } from "@/lib/mock-data";
+import useSWR from 'swr';
+import { Movie } from "@/types/global-type";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Movie>>);
 
 interface MovieTabsSectionProps {
   selectedGenres: string[];
@@ -10,6 +13,21 @@ interface MovieTabsSectionProps {
 }
 
 export const MovieTabsSection = ({ selectedGenres, searchTerm }: MovieTabsSectionProps) => {
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const { data, error, isLoading } = useSWR<GenericResponse<Movie>>(
+    `${process.env.NEXT_PUBLIC_API_URL}/movies?limit=8&sortOrder=desc`, // Thay bằng endpoint thực tế
+    fetcher,
+    {
+      revalidateIfStale: false,
+      refreshInterval: 3000,
+    }
+  );
+
+  useEffect(() => {
+    if (data) {
+      setMovies(data.data.data);
+    }
+  }, [data]);
   const [currentTab, setCurrentTab] = useState<'now-showing'|'coming-soon'>('now-showing');
   
   const nowShowingMovies = movies.filter(movie => !movie.upcoming);
@@ -17,15 +35,14 @@ export const MovieTabsSection = ({ selectedGenres, searchTerm }: MovieTabsSectio
   
   const filterMoviesByGenre = (movieList: typeof movies) => {
     return movieList.filter(movie => 
-      (selectedGenres.length === 0 || selectedGenres.some(genre => movie.genres.includes(genre)))
+      selectedGenres.length === 0 || selectedGenres.some(genre => movie.genres.some(g => g.genre?.name === genre))
     );
   };
   
   const filterMoviesBySearch = (movieList: typeof movies) => {
     return searchTerm
       ? movieList.filter(movie => 
-          movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          movie.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase()))
+          movie.title.toLowerCase().includes(searchTerm.toLowerCase())
         )
       : movieList;
   };
@@ -62,12 +79,7 @@ export const MovieTabsSection = ({ selectedGenres, searchTerm }: MovieTabsSectio
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4 gap-6">
             {(searchTerm ? filteredNowShowing : nowShowingMovies).map((movie) => (
               <MovieCard
-                key={movie.id}
-                id={movie.id}
-                title={movie.title}
-                posterPath={movie.posterPath}
-                genres={movie.genres}
-                rating={movie.rating}
+                movie={movie}
               />
             ))}
             {searchTerm && filteredNowShowing.length === 0 && (
@@ -82,12 +94,7 @@ export const MovieTabsSection = ({ selectedGenres, searchTerm }: MovieTabsSectio
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
             {(searchTerm ? filteredUpcoming : upcomingMovies).map((movie) => (
               <MovieCard
-                key={movie.id}
-                id={movie.id}
-                title={movie.title}
-                posterPath={movie.posterPath}
-                genres={movie.genres}
-                rating={movie.rating}
+                movie={movie}
               />
             ))}
             {searchTerm && filteredUpcoming.length === 0 && (
