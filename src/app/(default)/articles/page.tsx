@@ -1,18 +1,45 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Search } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import { articles } from '@/lib/mock-data';
+import type { Articles, Categories } from "@/types/global-type";
+import useSWR from 'swr';
+
+const fetcherArticles = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Articles>>);
+const fetcherCategories = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Categories>>);
 
 export default function ArticlesPage() {
+  const [articles, setArticles] = useState<Articles[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [categories, setCategories] = useState<Categories[]>([]);
+
+  const { data, error, isLoading } = useSWR<GenericResponse<Articles>>(
+    `${process.env.NEXT_PUBLIC_API_URL}/article?limit=8&sortOrder=desc`,
+    fetcherArticles,
+    {
+      revalidateIfStale: false,
+      refreshInterval: 3000,
+    }
+  );
+
+  const { data: categoriesData, error: categoriesError, isLoading: isLoadingCategories } = useSWR<GenericResponse<Categories>>(
+    `${process.env.NEXT_PUBLIC_API_URL}/article-categories?limit=20&sortOrder=desc`,
+    fetcherCategories,
+    {
+      revalidateIfStale: false,
+      refreshInterval: 3000,
+    }
+  );
   
-  // Lấy danh sách các category
-  const categories = Array.from(new Set(articles.map(article => article.category)));
+  useEffect(() => {
+    if (data && categoriesData) {
+      setCategories(categoriesData.data.data);
+      setArticles(data.data.data);
+    }
+  }, [data]);
   
   // Lọc bài viết theo search và category
   const filteredArticles = articles.filter(article => {
@@ -20,14 +47,13 @@ export default function ArticlesPage() {
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategory === '' || article.category === selectedCategory;
+    const matchesCategory = selectedCategory === '' || article.category.id === Number(selectedCategory);
     
     return matchesSearch && matchesCategory;
   });
   
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* <Navbar /> */}
       
       {/* Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
@@ -64,8 +90,8 @@ export default function ArticlesPage() {
               >
                 <option value="">Tất cả chuyên mục</option>
                 {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -92,7 +118,7 @@ export default function ArticlesPage() {
                   <div className="p-5">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30 px-2 py-0.5 rounded">
-                        {article.category}
+                        {article.category.name}
                       </span>
                       <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                         <Clock className="w-3 h-3 mr-1" />
@@ -109,14 +135,14 @@ export default function ArticlesPage() {
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full overflow-hidden mr-2 border border-gray-200 dark:border-gray-700">
                           <Image
-                            src={article.authorAvatar}
-                            alt={article.author}
+                            src={article.author.avatar}
+                            alt={article.author.lastName}
                             width={32}
                             height={32}
                             className="object-cover"
                           />
                         </div>
-                        <span className="text-sm font-medium">{article.author}</span>
+                        <span className="text-sm font-medium">{article.author.firstName} {article.author.lastName}</span>
                       </div>
                       <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(article.date).toLocaleDateString('vi-VN')}</span>
                     </div>
