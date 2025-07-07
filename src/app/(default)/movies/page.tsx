@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Search, Menu } from "lucide-react";
 import MovieCard from "@/components/MovieCard";
 import BackgroundGradient from "@/components/BackgroundGradient";
-// import { movies } from "@/lib/mock-data";
 import useSWR from 'swr';
 import { Genre, Movie } from "@/types/global-type";
 
@@ -43,11 +42,7 @@ export default function MoviesPage() {
       setMovie(data.data.data);
     }
   }, [data, genresData]);
-  console.log("movies", movies);
-  console.log('genres', genres);
   // Get all unique genres
-  const allGenres = movies.map(movie => movie.genres).sort();
-  console.log(allGenres);
 
   // Filter movies based on search, genres, and tab
   const filteredMovies = movies.filter(movie => {

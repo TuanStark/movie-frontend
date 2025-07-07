@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { Star } from "lucide-react";
-import { movies } from "@/lib/mock-data";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import MovieDetailClient from "./MovieDetailClient";
@@ -16,14 +15,6 @@ interface PageProps {
 // Fetch movie data at build time
 async function getMovie(id: string): Promise<Movie | null> {
   try {
-    // // First try to get from mock data for development
-    // const movieId = parseInt(id);
-    // const mockMovie = movies.find(m => m.id === movieId);
-
-    // if (mockMovie) {
-    //   return mockMovie;
-    // }
-
     // Fallback to API if not in mock data
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/movies/${id}`, {
       next: { revalidate: 3600 } // Revalidate every hour
