@@ -1,51 +1,85 @@
-"use client";
-
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, Calendar, Clock, Share } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import { articles } from '@/lib/mock-data';
+import { Articles } from '@/types/global-type';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
-export default function ArticleDetailPage() {
-  const router = useRouter();
-  const { id } = useParams<{ id: string }>();
-  const [article, setArticle] = useState<typeof articles[0] | null>(null);
-  const [relatedArticles, setRelatedArticles] = useState<typeof articles>([]);
-  
-  useEffect(() => {
-    if (!id) return;
-    
-    // Tìm bài viết theo id
-    const articleId = parseInt(id as string);
-    const foundArticle = articles.find(a => a.id === articleId);
-    
-    if (foundArticle) {   
-      setArticle(foundArticle);
-      
-      // Tìm các bài viết liên quan (cùng category)
-      const related = articles
-        .filter(a => a.id !== articleId && a.category === foundArticle.category)
-        .slice(0, 3);
-      
-      setRelatedArticles(related);
-    } else {
-      router.push('/articles');
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+async function getArticleById(id: string): Promise<Articles | null> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/articles/${id}`, {
+      next: { revalidate: 10 } // Revalidate every hour
+    });
+
+    if (!response.ok) {
+      return null;
     }
-  }, [id, router]);
-  
+
+    const data = await response.json();
+    // console.log(data)
+
+    // Handle different response structures
+    return data.data || null;
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    return null;
+  }
+}
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const article = await getArticleById(params.id);
+  // console.log(article)
+
   if (!article) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-      </div>
-    );
+    return {
+      title: 'Article Not Found',
+      description: 'The requested article could not be found.',
+    };
+  }
+
+  return {
+    title: `${article.title} - Cinema News`,
+    description: article.excerpt,
+    keywords: [
+      article.title,
+      'cinema',
+      'movies',
+      'news',
+      'articles'
+    ].join(', '),
+    openGraph: {
+      title: article.title,
+      description: article.excerpt,
+      images: article.imagePath ? [article.imagePath] : [],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt,
+      images: article.imagePath ? [article.imagePath] : [],
+    },
+  };
+}
+
+export default async function ArticleDetailPage({params} : PageProps) {
+  // console.log(params.id)
+  const article = await getArticleById(params.id);
+  // console.log(article)
+
+  if (!article) {
+    notFound();
   }
   
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* <Navbar /> */}
       
       {/* Article Header */}
       <div className="relative h-[50vh] md:h-[60vh]">
@@ -70,7 +104,7 @@ export default function ArticleDetailPage() {
           </div>
           
           <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary-500/90 text-white text-sm font-medium mb-4">
-            {article.category}
+            {article.category?.name}
           </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-4xl">
             {article.title}
@@ -79,14 +113,14 @@ export default function ArticleDetailPage() {
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border-2 border-white/20">
                 <Image
-                  src={article.authorAvatar}
-                  alt={article.author}
+                  src={article.author?.avatar || '/default-avatar.png'}
+                  alt={article.author?.firstName}
                   width={40}
                   height={40}
                   className="object-cover"
                 />
               </div>
-              <span className="font-medium">{article.author}</span>
+              <span className="font-medium">{article.author?.firstName} {article.author?.lastName}</span>
             </div>
             <div className="flex items-center">
               <Calendar className="h-5 w-5 mr-2" />
@@ -166,45 +200,7 @@ export default function ArticleDetailPage() {
           </div>
         </div>
       </div>
-      
-      {/* Related Articles */}
-      {relatedArticles.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-2xl font-bold mb-8">Bài viết liên quan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {relatedArticles.map((relatedArticle) => (
-              <div key={relatedArticle.id} className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <Link href={`/articles/${relatedArticle.id}`} className="group">
-                  <div className="relative h-48 w-full">
-                    <Image
-                      src={relatedArticle.imagePath}
-                      alt={relatedArticle.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30 px-2 py-0.5 rounded">
-                        {relatedArticle.category}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(relatedArticle.date).toLocaleDateString('vi-VN')}
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      {relatedArticle.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                      {relatedArticle.excerpt}
-                    </p>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
     </main>
   );
 } 

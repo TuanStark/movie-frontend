@@ -13,7 +13,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json() as Promise<
 export const ArticleSection = () => {
   const [articles, setArticles] = useState<Articles[]>([]);
   const { data, error, isLoading } = useSWR<GenericResponse<Articles>>(
-    `${process.env.NEXT_PUBLIC_API_URL}/article?limit=4`, // Thay bằng endpoint thực tế
+    `${process.env.NEXT_PUBLIC_API_URL}/articles?limit=4`, // Thay bằng endpoint thực tế
     fetcher,
     {
       revalidateIfStale: false,

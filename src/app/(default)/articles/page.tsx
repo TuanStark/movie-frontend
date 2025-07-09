@@ -17,7 +17,7 @@ export default function ArticlesPage() {
   const [categories, setCategories] = useState<Categories[]>([]);
 
   const { data, error, isLoading } = useSWR<GenericResponse<Articles>>(
-    `${process.env.NEXT_PUBLIC_API_URL}/article?limit=8&sortOrder=desc`,
+    `${process.env.NEXT_PUBLIC_API_URL}/articles?limit=8`,
     fetcherArticles,
     {
       revalidateIfStale: false,
@@ -26,7 +26,7 @@ export default function ArticlesPage() {
   );
 
   const { data: categoriesData, error: categoriesError, isLoading: isLoadingCategories } = useSWR<GenericResponse<Categories>>(
-    `${process.env.NEXT_PUBLIC_API_URL}/article-categories?limit=20&sortOrder=desc`,
+    `${process.env.NEXT_PUBLIC_API_URL}/article-categories?limit=20`,
     fetcherCategories,
     {
       revalidateIfStale: false,
@@ -39,18 +39,70 @@ export default function ArticlesPage() {
       setCategories(categoriesData.data.data);
       setArticles(data.data.data);
     }
-  }, [data]);
+  }, [data, categoriesData]);
   
   // Lọc bài viết theo search và category
   const filteredArticles = articles.filter(article => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === '' || article.category.id === Number(selectedCategory);
-    
+
+    const matchesCategory = selectedCategory === '' ||
+      (article.category && article.category.id === Number(selectedCategory));
+
     return matchesSearch && matchesCategory;
   });
+
+  // Loading state
+  if (isLoading || isLoadingCategories) {
+    return (
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Tin tức điện ảnh</h1>
+            <p className="text-xl md:text-2xl text-white/80 max-w-3xl">
+              Cập nhật những tin tức mới nhất về phim ảnh, đánh giá phim và hậu trường sản xuất
+            </p>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm animate-pulse">
+                <div className="h-48 bg-gray-200 dark:bg-gray-700"></div>
+                <div className="p-5">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full mr-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Error state
+  if (error || categoriesError) {
+    return (
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải dữ liệu</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Không thể tải dữ liệu bài viết. Vui lòng thử lại sau.
+          </p>
+        </div>
+      </main>
+    );
+  }
   
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
