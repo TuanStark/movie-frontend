@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 // Define PaginationMeta locally to avoid import issues
 export interface PaginationMeta {
@@ -17,6 +18,10 @@ export interface PaginationProps {
   limitOptions?: number[];
   maxVisiblePages?: number;
   className?: string;
+  // URL sync options
+  syncWithURL?: boolean;
+  basePath?: string; // e.g., '/movies', '/articles'
+  preserveParams?: string[]; // Other params to preserve in URL
 }
 
 const Pagination: React.FC<PaginationProps> = ({
@@ -28,7 +33,53 @@ const Pagination: React.FC<PaginationProps> = ({
   limitOptions = [5, 10, 20, 50],
   maxVisiblePages = 5,
   className = '',
+  syncWithURL = false,
+  basePath = '',
+  preserveParams = [],
 }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Function to update URL with pagination params
+  const updateURL = (newPage: number, newLimit?: number) => {
+    if (!syncWithURL || !basePath) return;
+
+    const params = new URLSearchParams();
+
+    // Preserve existing params
+    preserveParams.forEach(param => {
+      const value = searchParams.get(param);
+      if (value) {
+        params.set(param, value);
+      }
+    });
+
+    // Set pagination params
+    params.set('page', String(newPage));
+    if (newLimit !== undefined) {
+      params.set('limit', String(newLimit));
+    } else {
+      const currentLimit = searchParams.get('limit');
+      if (currentLimit) {
+        params.set('limit', currentLimit);
+      }
+    }
+
+    router.push(`${basePath}?${params.toString()}`);
+  };
+
+  // Wrapper functions that handle both callback and URL update
+  const handlePageChange = (page: number) => {
+    onPageChange(page);
+    updateURL(page);
+  };
+
+  const handleLimitChange = (limit: number) => {
+    if (onLimitChange) {
+      onLimitChange(limit);
+      updateURL(1, limit); // Reset to page 1 when limit changes
+    }
+  };
   const { total, totalPages, limitNumber } = meta;
 
   // Tính toán các trang cần hiển thị
@@ -84,7 +135,7 @@ const Pagination: React.FC<PaginationProps> = ({
             <span className="text-sm text-gray-700 dark:text-gray-300">Hiển thị:</span>
             <select
               value={limitNumber}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
+              onChange={(e) => handleLimitChange(Number(e.target.value))}
               className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {limitOptions.map((option) => (
@@ -100,7 +151,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <div className="flex items-center gap-1">
           {/* First page */}
           <button
-            onClick={() => onPageChange(1)}
+            onClick={() => handlePageChange(1)}
             disabled={!canGoPrevious}
             className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             title="Trang đầu"
@@ -110,7 +161,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
           {/* Previous page */}
           <button
-            onClick={() => onPageChange(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={!canGoPrevious}
             className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             title="Trang trước"
@@ -123,7 +174,7 @@ const Pagination: React.FC<PaginationProps> = ({
             {pageNumbers.map((pageNumber) => (
               <button
                 key={pageNumber}
-                onClick={() => onPageChange(pageNumber)}
+                onClick={() => handlePageChange(pageNumber)}
                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   pageNumber === currentPage
                     ? 'bg-primary-600 text-white'
@@ -137,7 +188,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
           {/* Next page */}
           <button
-            onClick={() => onPageChange(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={!canGoNext}
             className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             title="Trang sau"
@@ -147,7 +198,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
           {/* Last page */}
           <button
-            onClick={() => onPageChange(totalPages)}
+            onClick={() => handlePageChange(totalPages)}
             disabled={!canGoNext}
             className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             title="Trang cuối"

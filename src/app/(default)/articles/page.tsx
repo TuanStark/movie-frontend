@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Search } from 'lucide-react';
@@ -9,14 +10,12 @@ import useSWR from 'swr';
 import Pagination, { PaginationMeta } from '../../../components/ui/Pagination';
 
 interface GenericResponse<T> {
-  data: {
-    data: T[];
-    meta: {
-      total: number;
-      pageNumber: number;
-      limitNumber: number;
-      totalPages: number;
-    };
+  data: T[];
+  meta: {
+    total: number;
+    pageNumber: number;
+    limitNumber: number;
+    totalPages: number;
   };
 }
 
@@ -24,15 +23,17 @@ const fetcherArticles = (url: string) => fetch(url).then((res) => res.json() as 
 const fetcherCategories = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Categories>>);
 
 export default function ArticlesPage() {
+  const searchParams = useSearchParams();
+
   const [articles, setArticles] = useState<Articles[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [categories, setCategories] = useState<Categories[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(8);
+  // Get state from URL parameters
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('categoryId') || '');
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1);
+  const [limit, setLimit] = useState(Number(searchParams.get('limit')) || 2); // Giảm xuống 2 để test pagination
 
   // Tạo URL với search và filter parameters
   const buildApiUrl = () => {
@@ -71,25 +72,39 @@ export default function ArticlesPage() {
   );
   
   useEffect(() => {
-    if (data?.data?.data) {
-      setArticles(data.data.data);
-      setMeta(data.data.meta);
+    if (data) {
+      // Handle nested structure: { data: { data: [...], meta: {...} } }
+      if (data.data && Array.isArray(data.data) && data.meta) {
+        setArticles(data.data);
+        setMeta(data.meta);
+      }
+      // Handle nested structure: { data: { data: [...], meta: {...} } }
+      else if ((data as any).data?.data && (data as any).data?.meta) {
+        setArticles((data as any).data.data);
+        setMeta((data as any).data.meta);
+      }
     }
   }, [data]);
 
   useEffect(() => {
-    if (categoriesData?.data?.data) {
-      setCategories(categoriesData.data.data);
+    if (categoriesData) {
+      // Handle flat structure: { data: [...], meta: {...} }
+      if (categoriesData.data && Array.isArray(categoriesData.data)) {
+        setCategories(categoriesData.data);
+      }
+      // Handle nested structure: { data: { data: [...], meta: {...} } }
+      else if ((categoriesData as any).data?.data) {
+        setCategories((categoriesData as any).data.data);
+      }
     }
   }, [categoriesData]);
 
-  // Reset về trang 1 khi search hoặc category thay đổi
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedCategory, setCurrentPage]);
+
   
   // Sử dụng articles trực tiếp vì đã được filter từ server
   const filteredArticles = articles;
+
+
 
   // Loading state
   if (isLoading || isLoadingCategories) {
@@ -168,14 +183,20 @@ export default function ArticlesPage() {
                 placeholder="Tìm kiếm bài viết..."
                 className="w-full py-3 pl-12 pr-4 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             
             <div className="flex-shrink-0">
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full py-3 px-4 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               >
                 <option value="">Tất cả chuyên mục</option>
@@ -254,16 +275,22 @@ export default function ArticlesPage() {
         )}
 
         {/* Pagination */}
-        {meta && meta.totalPages > 1 && (
+        {meta && (meta.totalPages > 1 || true) && (
           <div className="mt-12">
             <Pagination
               meta={meta}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
-              onLimitChange={setLimit}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setCurrentPage(1);
+              }}
               showLimitSelector={true}
-              limitOptions={[5, 8, 10, 20]}
+              limitOptions={[1, 2, 5, 8, 10, 20]}
               className="justify-center"
+              syncWithURL={true}
+              basePath="/articles"
+              preserveParams={['search', 'categoryId']}
             />
           </div>
         )}
