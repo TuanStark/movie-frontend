@@ -6,6 +6,19 @@ import Link from 'next/link';
 import { Clock, Search } from 'lucide-react';
 import type { Articles, Categories } from "@/types/global-type";
 import useSWR from 'swr';
+import Pagination, { PaginationMeta } from '../../../components/ui/Pagination';
+
+interface GenericResponse<T> {
+  data: {
+    data: T[];
+    meta: {
+      total: number;
+      pageNumber: number;
+      limitNumber: number;
+      totalPages: number;
+    };
+  };
+}
 
 const fetcherArticles = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Articles>>);
 const fetcherCategories = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Categories>>);
@@ -15,9 +28,32 @@ export default function ArticlesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [categories, setCategories] = useState<Categories[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(8);
+
+  // Tạo URL với search và filter parameters
+  const buildApiUrl = () => {
+    const params = new URLSearchParams({
+      page: currentPage.toString(),
+      limit: limit.toString(),
+    });
+
+    if (searchTerm) {
+      params.append('search', searchTerm);
+    }
+
+    if (selectedCategory) {
+      params.append('categoryId', selectedCategory);
+    }
+
+    return `${process.env.NEXT_PUBLIC_API_URL}/articles?${params.toString()}`;
+  };
 
   const { data, error, isLoading } = useSWR<GenericResponse<Articles>>(
-    `${process.env.NEXT_PUBLIC_API_URL}/articles?limit=8`,
+    buildApiUrl(),
     fetcherArticles,
     {
       revalidateIfStale: false,
@@ -35,23 +71,25 @@ export default function ArticlesPage() {
   );
   
   useEffect(() => {
-    if (data && categoriesData) {
-      setCategories(categoriesData.data.data);
+    if (data?.data?.data) {
       setArticles(data.data.data);
+      setMeta(data.data.meta);
     }
-  }, [data, categoriesData]);
+  }, [data]);
+
+  useEffect(() => {
+    if (categoriesData?.data?.data) {
+      setCategories(categoriesData.data.data);
+    }
+  }, [categoriesData]);
+
+  // Reset về trang 1 khi search hoặc category thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, setCurrentPage]);
   
-  // Lọc bài viết theo search và category
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = searchTerm === '' ||
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesCategory = selectedCategory === '' ||
-      (article.category && article.category.id === Number(selectedCategory));
-
-    return matchesSearch && matchesCategory;
-  });
+  // Sử dụng articles trực tiếp vì đã được filter từ server
+  const filteredArticles = articles;
 
   // Loading state
   if (isLoading || isLoadingCategories) {
@@ -214,7 +252,22 @@ export default function ArticlesPage() {
             </p>
           </div>
         )}
+
+        {/* Pagination */}
+        {meta && meta.totalPages > 1 && (
+          <div className="mt-12">
+            <Pagination
+              meta={meta}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              onLimitChange={setLimit}
+              showLimitSelector={true}
+              limitOptions={[5, 8, 10, 20]}
+              className="justify-center"
+            />
+          </div>
+        )}
       </div>
     </main>
   );
-} 
+}
