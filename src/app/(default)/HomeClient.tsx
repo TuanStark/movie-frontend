@@ -10,6 +10,7 @@ import { HeroSection } from "@/src/components/home/HeroSection";
 import { TrendingSection } from "@/src/components/home/TrendingSection";
 import { UpcomingReleasesSection } from "@/src/components/home/UpcomingReleasesSection";
 import { Movie } from "@/types/global-type";
+import { HomeSkeleton } from "../../components/skeletons/HomeSkeleton";
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json() as Promise<GenericResponse<Movie>>);
@@ -33,67 +34,27 @@ export default function HomeClient() {
             setFeaturedMovie(data.data.data);
         }
     }, [data]);
+    console.log(data)
 
-
-    // const nowShowingMovies = movies.filter(movie => !movie.upcoming);
-    // const upcomingMovies = movies.filter(movie => movie.upcoming);
-
-    // const filterMoviesByGenre = (movieList: typeof movies) => {
-    //     return movieList.filter(movie =>
-    //         (selectedGenres.length === 0 || selectedGenres.some(genre => movie.genres.includes(genre)))
-    //     );
-    // };
-
-    // const filterMoviesBySearch = (movieList: typeof movies) => {
-    //     return searchTerm
-    //         ? movieList.filter(movie =>
-    //             movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //             movie.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase()))
-    //         )
-    //         : movieList;
-    // };
-
-    // // const filteredNowShowing = filterMoviesBySearch(filterMoviesByGenre(nowShowingMovies));
-    // // const filteredUpcoming = filterMoviesBySearch(filterMoviesByGenre(upcomingMovies));
-
-    // // Toggle genre selection
-    // const toggleGenre = (genre: string) => {
-    //     setSelectedGenres(prev =>
-    //         prev.includes(genre)
-    //             ? prev.filter(g => g !== genre)
-    //             : [...prev, genre]
-    //     );
-    // };
-
-    // // Clear all selected genres
-    // const clearGenreFilters = () => {
-    //     setSelectedGenres([]);
-    // };
-
-    // // Handle newsletter subscription
-    // const handleSubscribe = (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     // Simulate subscription process
-    //     if (emailSubscription && emailSubscription.includes('@')) {
-    //         setSubscribeSuccess(true);
-    //         setEmailSubscription("");
-    //         setTimeout(() => {
-    //             setSubscribeSuccess(false);
-    //         }, 5000);
-    //     }
-    // };
-
-    // Select a random featured movie each day
-    // useEffect(() => {
-    //     const topRatedMovies = movies
-    //         .filter(movie => movie.rating >= 8.0)
-    //         .sort((a, b) => b.rating - a.rating);
-    //     const randomIndex = Math.floor(Math.random() * Math.min(3, topRatedMovies.length));
-    //     setFeaturedMovie(topRatedMovies[randomIndex] || movies[0]);
-    // }, []);
-
-    if (isLoading) return <div>Loading...</div>;
-    if (error) return <div>Error loading movies</div>;
+    if (isLoading) return <HomeSkeleton />;
+    if (error) return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+            <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    Error loading movies
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Please try refreshing the page
+                </p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="btn-primary"
+                >
+                    Refresh Page
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">

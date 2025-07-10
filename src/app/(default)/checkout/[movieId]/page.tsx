@@ -363,10 +363,13 @@ export default function CheckoutPage({ params }: PageProps) {
                         </div>
                         <div className="flex items-center">
                           <div className="mr-2">
-                            <h3 className="font-medium">VNPay</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Pay with QR code or banking app
-                            </p>
+                            <Image
+                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752157602/payment_plrycn.jpg"
+                              alt="VNPay"
+                              width={50}
+                              height={25}
+                              className="object-contain"
+                            />
                           </div>
                           <div className="flex-shrink-0">
                             <Image

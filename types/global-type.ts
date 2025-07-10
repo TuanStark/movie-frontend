@@ -105,6 +105,35 @@ export interface Seats {
   createdAt?: string;
   updatedAt?: string;
   seat: Seat
+
+}
+export interface BookingSeat{
+  id: number,
+  bookingId: number,
+  seatId: number,
+  status?: string,
+  createdAt?: string,
+  updatedAt?: string,
+  seat: Seat,
+  theater: Theater,
+  booking?: {
+    id: number;
+    userId: number;
+    showtimeId: number;
+    totalPrice: number;
+    bookingDate: string;
+    bookingCode: string;
+    status: string;
+    paymentMethod: string;
+    images?: string;
+    user?: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+    showtime?: Showtime;
+  };
 }
 
 export interface Seat {
@@ -116,7 +145,10 @@ export interface Seat {
   price: number;
   createdAt?: string;
   updatedAt?: string;
+  bookingSeats: BookingSeat[];
 }
+
+
 
 export interface Bookings {
   id: number;
@@ -128,7 +160,7 @@ export interface Bookings {
   totalPrice: number;
   status: string;
   paymentMethod: string;
-  images: string;
+  images?: string;
   createdAt?: string;
   updatedAt?: string;
   user: Users;
