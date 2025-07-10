@@ -147,10 +147,10 @@ export default function MoviesPage() {
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Explore Our Movies
+            Khám phá Phim của Chúng tôi
           </h1>
           <p className="text-white/80 max-w-2xl">
-            Browse our collection of now-showing and upcoming movies. Find the perfect film for your next cinema experience.
+            Duyệt qua bộ sưu tập phim đang chiếu và sắp chiếu của chúng tôi. Tìm bộ phim hoàn hảo cho trải nghiệm điện ảnh tiếp theo của bạn.
           </p>
         </div>
       </div>
@@ -231,7 +231,7 @@ export default function MoviesPage() {
               : 'text-gray-500 dark:text-gray-400'
               }`}
           >
-            All Movies
+            Tất cả phim
           </button>
           <button
             onClick={() => {
@@ -243,7 +243,7 @@ export default function MoviesPage() {
               : 'text-gray-500 dark:text-gray-400'
               }`}
           >
-            Now Showing
+            Đang thịnh hành
           </button>
           <button
             onClick={() => {
@@ -255,7 +255,7 @@ export default function MoviesPage() {
               : 'text-gray-500 dark:text-gray-400'
               }`}
           >
-            Coming Soon
+            Sắp ra mắt
           </button>
         </div>
 

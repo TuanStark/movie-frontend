@@ -51,7 +51,7 @@ export const SearchFilterSection = ({
             </div>
             <input
               type="text"
-              placeholder="Search for movies by title, genre, actor..."
+              placeholder="Tìm kiếm phim theo tiêu đề, thể loại, diễn viên..."
               className="w-full py-4 pl-12 pr-4 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

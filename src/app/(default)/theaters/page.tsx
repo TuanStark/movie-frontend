@@ -60,19 +60,19 @@ export default async function TheatersPage() {
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <BackgroundGradient />
       {/* <Navbar /> */}
-      
+
       {/* Page Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Our Theaters
+            Rạp chiếu phim của chúng tôi
           </h1>
           <p className="text-white/80 max-w-2xl">
-            Find the perfect cinema location for your movie experience. Each theater offers premium sound and visual quality.
+          Tìm địa điểm chiếu phim lý tưởng cho trải nghiệm xem phim của bạn. Mỗi rạp đều cung cấp chất lượng âm thanh và hình ảnh cao cấp.
           </p>
         </div>
       </div>
-      
+
       {/* Search Bar */}
       <div className="container mx-auto px-4 py-8">
         {/* Theaters List */}

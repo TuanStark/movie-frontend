@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { CheckCircle, Download, Mail, Calendar, Clock, MapPin, User, CreditCard } from 'lucide-react';
+import { CheckCircle, Mail, Calendar, Clock, MapPin, User, CreditCard } from 'lucide-react';
 import { Movie, Theater, Showtime, Seat } from '@/types/global-type';
 
 interface CustomerInfo {
@@ -82,10 +82,10 @@ export default function ConfirmationPage() {
             <CheckCircle className="h-16 w-16 text-green-500" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Booking Confirmed!
+            Đặt vé thành công!
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Your movie tickets have been successfully booked
+            Vé xem phim của bạn đã được đặt thành công
           </p>
         </div>
 
@@ -95,14 +95,14 @@ export default function ConfirmationPage() {
           <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-6 py-4">
             <div className="flex justify-between items-center text-white">
               <div>
-                <h2 className="text-xl font-bold">Booking Confirmation</h2>
-                <p className="text-primary-100">Booking Code: {bookingCode}</p>
+                <h2 className="text-xl font-bold">Xác nhận đặt vé</h2>
+                <p className="text-primary-100">Mã đặt vé: {bookingCode}</p>
                 {confirmationData.bookingId && (
                   <p className="text-primary-100 text-sm">ID: #{confirmationData.bookingId}</p>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-primary-100">Booking Date</p>
+                <p className="text-primary-100">Ngày đặt vé</p>
                 <p className="font-semibold">{new Date(bookingDate).toLocaleDateString()}</p>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function ConfirmationPage() {
               {/* Movie & Showtime Info */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Movie Details
+                  Thông tin phim
                 </h3>
                 
                 <div className="flex items-start space-x-4 mb-6">
@@ -150,16 +150,16 @@ export default function ConfirmationPage() {
                 {/* Seats */}
                 <div className="mb-6">
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                    Your Seats ({seats.length})
+                    Ghế của bạn ({seats.length})
                   </h4>
                   <div className="grid grid-cols-2 gap-2">
                     {seats.map(seat => (
                       <div key={seat.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-center">
                         <div className="font-medium text-gray-900 dark:text-white">
-                          Row {seat.row}
+                          Hàng {seat.row}
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Seat {seat.number}
+                          Ghế {seat.number}
                         </div>
                       </div>
                     ))}
@@ -170,18 +170,18 @@ export default function ConfirmationPage() {
               {/* Customer & Payment Info */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Booking Information
+                  Thông tin đặt vé
                 </h3>
                 
                 {/* Customer Info */}
                 <div className="mb-6">
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                     <User className="h-4 w-4 mr-2" />
-                    Customer Details
+                    Thông tin khách hàng
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Name</span>
+                      <span className="text-gray-600 dark:text-gray-400">Họ tên</span>
                       <span className="font-medium text-gray-900 dark:text-white">
                         {customerInfo.firstName} {customerInfo.lastName}
                       </span>
@@ -193,7 +193,7 @@ export default function ConfirmationPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Phone</span>
+                      <span className="text-gray-600 dark:text-gray-400">Số điện thoại</span>
                       <span className="font-medium text-gray-900 dark:text-white">
                         {customerInfo.phone}
                       </span>
@@ -205,25 +205,25 @@ export default function ConfirmationPage() {
                 <div className="mb-6">
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                     <CreditCard className="h-4 w-4 mr-2" />
-                    Payment Details
+                    Chi tiết thanh toán
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Payment Method</span>
+                      <span className="text-gray-600 dark:text-gray-400">Phương thức thanh toán</span>
                       <span className="font-medium text-gray-900 dark:text-white capitalize">
-                        {paymentMethod} Card
+                        {paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản ngân hàng' : 'VNPay'}
                       </span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Showtime Fee</span>
+                        <span className="text-gray-600 dark:text-gray-400">Phí suất chiếu</span>
                         <span className="font-medium text-gray-900 dark:text-white">
                           {(showtime.price / 1000).toLocaleString()}k VND
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">
-                          Seats ({seats.length})
+                          Ghế ({seats.length})
                         </span>
                         <span className="font-medium text-gray-900 dark:text-white">
                           {(seats.reduce((total, seat) => total + seat.price, 0) / 1000).toLocaleString()}k VND
@@ -240,12 +240,12 @@ export default function ConfirmationPage() {
                           return (
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600 dark:text-gray-400">
-                                Peak Hour Surcharge
+                                Phụ thu giờ cao điểm
                                 <span className="text-xs block text-gray-500">
                                   {showtimeDate.getDay() >= 5 || showtimeDate.getDay() === 0
-                                    ? 'Weekend'
+                                    ? 'Cuối tuần'
                                     : showtimeTime >= "18:00"
-                                    ? 'Evening'
+                                    ? 'Buổi tối'
                                     : ''
                                   }
                                 </span>
@@ -261,7 +261,7 @@ export default function ConfirmationPage() {
 
                       <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Total Amount</span>
+                          <span className="text-gray-600 dark:text-gray-400">Tổng tiền</span>
                           <span className="font-bold text-lg text-primary-600">
                             {(totalPrice / 1000).toLocaleString()}k VND
                           </span>
@@ -277,12 +277,12 @@ export default function ConfirmationPage() {
                     <Mail className="h-5 w-5 text-gray-400 mr-3" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        Confirmation Email
+                        Email xác nhận
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {emailSent 
-                          ? `Sent to ${customerInfo.email}` 
-                          : 'Sending confirmation email...'
+                        {emailSent
+                          ? `Đã gửi đến ${customerInfo.email}`
+                          : 'Đang gửi email xác nhận...'
                         }
                       </p>
                     </div>
@@ -302,8 +302,8 @@ export default function ConfirmationPage() {
             onClick={handleDownloadTicket}
             className="flex items-center justify-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
           >
-            <Download className="h-5 w-5 mr-2" />
-            Download Ticket
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Tải vé
           </button>
           
           {!emailSent && (
@@ -312,7 +312,7 @@ export default function ConfirmationPage() {
               className="flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Mail className="h-5 w-5 mr-2" />
-              Resend Email
+              Gửi lại Email
             </button>
           )}
           
@@ -320,20 +320,20 @@ export default function ConfirmationPage() {
             onClick={handleBackToMovies}
             className="flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            Back to Movies
+            Quay lại Phim
           </button>
         </div>
 
         {/* Important Notes */}
         <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-            Important Notes:
+            Lưu ý quan trọng:
           </h4>
           <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-            <li>• Please arrive at the theater at least 15 minutes before showtime</li>
-            <li>• Bring a valid ID for verification</li>
-            <li>• Show this confirmation or your downloaded ticket at the entrance</li>
-            <li>• Tickets are non-refundable and non-transferable</li>
+            <li>• Vui lòng có mặt tại rạp ít nhất 15 phút trước giờ chiếu</li>
+            <li>• Mang theo giấy tờ tùy thân hợp lệ để xác minh</li>
+            <li>• Xuất trình xác nhận này hoặc vé đã tải về tại lối vào</li>
+            <li>• Vé không được hoàn tiền và không thể chuyển nhượng</li>
           </ul>
         </div>
       </div>

@@ -306,8 +306,8 @@ export default function BookingPage({ params }: PageProps) {
                                 disabled={seat.isBooked}
                                 title={
                                   seat.isBooked && currentShowtimeBooking
-                                    ? `Booked by ${currentShowtimeBooking.booking?.user?.firstName} ${currentShowtimeBooking.booking?.user?.lastName} - ${currentShowtimeBooking.booking?.bookingCode}`
-                                    : `${seat.type} - ${(seat.price / 1000).toLocaleString()}k VND`
+                                    ? `Đã đặt bởi ${currentShowtimeBooking.booking?.user?.firstName} ${currentShowtimeBooking.booking?.user?.lastName} - ${currentShowtimeBooking.booking?.bookingCode}`
+                                    : `${seat.type === 'VIP' ? 'VIP' : 'Tiêu chuẩn'} - ${(seat.price / 1000).toLocaleString()}k VND`
                                 }
                                 className={`w-8 h-8 rounded text-xs font-medium transition-colors relative ${
                                   seat.isBooked

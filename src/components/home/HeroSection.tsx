@@ -84,13 +84,13 @@ export const HeroSection = ({ featuredMovie }: HeroSectionProps) => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
-              Watch Trailer
+              Xem Trailer
             </Link>
             <Link
               href={`/movies/${currentMovie?.id}`}
               className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-medium py-3 px-6 rounded-full flex items-center transition-all"
             >
-              Book Tickets
+              Đặt vé
             </Link>
           </div>
 

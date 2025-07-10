@@ -61,7 +61,7 @@ export const MovieTabsSection = ({ selectedGenres, searchTerm }: MovieTabsSectio
             }`}
             onClick={() => setCurrentTab('now-showing')}
           >
-            Now Showing
+            Đang hiển thị
           </button>
           <button
             className={`px-6 py-3 text-lg font-medium border-b-2 -mb-px ${
@@ -71,7 +71,7 @@ export const MovieTabsSection = ({ selectedGenres, searchTerm }: MovieTabsSectio
             }`}
             onClick={() => setCurrentTab('coming-soon')}
           >
-            Coming Soon
+            Sắp ra mắt
           </button>
         </div>
         

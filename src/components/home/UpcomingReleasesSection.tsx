@@ -31,11 +31,12 @@ export const UpcomingReleasesSection = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold">Upcoming Premieres</h2>
-              <p className="text-gray-600 dark:text-gray-400">Be the first to watch these anticipated movies</p>
+              <h2 className="text-2xl md:text-3xl font-bold">Các phim sắp ra mắt</h2>
+              <p className="text-gray-600 dark:text-gray-400">Hãy là người đầu tiên xem những bộ phim được mong đợi này</p>
             </div>
             <Link href="/movies?tab=coming-soon" className="text-primary-600 dark:text-primary-400 flex items-center hover:underline">
-              View all premieres <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              Xem tất cả
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
@@ -72,7 +73,7 @@ export const UpcomingReleasesSection = () => {
                         href={`/movies/${movie.id}`} 
                         className="text-primary-600 dark:text-primary-400 text-sm font-medium hover:underline"
                       >
-                        More Info
+                        Xem thông tin
                       </Link>
                     </div>
                   </div>
