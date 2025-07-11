@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
@@ -10,7 +10,6 @@ import Navbar from "@/components/Navbar";
 import BackgroundGradient from "@/components/BackgroundGradient";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
@@ -59,12 +58,18 @@ export default function LoginPage() {
       if (result?.error) {
         setFormError("Invalid email or password");
         setIsLoading(false);
-      } else {
-        // Redirect to callbackUrl or home page
-        router.push(callbackUrl);
-        router.refresh();
+      } else if (result?.ok) {
+        // Đăng nhập thành công, redirect về trang được yêu cầu
+        console.log("Login successful, redirecting to:", callbackUrl);
+
+        // Đảm bảo callbackUrl hợp lệ và không phải là trang login
+        const redirectUrl = callbackUrl && callbackUrl !== "/login" ? callbackUrl : "/";
+
+        // Sử dụng window.location để đảm bảo redirect hoạt động
+        window.location.href = redirectUrl;
       }
     } catch (error) {
+      console.error("Login error:", error);
       setFormError("An unexpected error occurred");
       setIsLoading(false);
     }
@@ -210,10 +215,11 @@ export default function LoginPage() {
                   type="button"
                   className="w-full bg-white hover:bg-gray-100 text-gray-900 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 border border-gray-300"
                   disabled={isLoading}
-                // onClick={() => {
-                //   // Add Google Sign-In logic here (e.g., redirect to Google OAuth)
-                //   window.location.href = '/api/auth/google';
-                // }}
+                  onClick={() => {
+                    signIn("google", {
+                      callbackUrl: callbackUrl && callbackUrl !== "/login" ? callbackUrl : "/"
+                    });
+                  }}
                 >
                   {isLoading ? (
                     <>

@@ -20,7 +20,9 @@ export default function Navbar() {
     setTheme(theme === "light" ? "dark" : "light");
   };
   const handleLogout = () => {
-    signOut();
+    signOut({
+      callbackUrl: "/",
+    });
   };
 
   return (
@@ -106,7 +108,7 @@ export default function Navbar() {
                       href="/logout"
                       className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                      <button onClick={() => signOut()}>
+                      <button onClick={handleLogout}>
                         <div className="flex items-center gap-2">
                           <LogOut size={18} className="mr-2" />
                           Đăng xuất
