@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { User, Mail, Phone, CheckCircle } from "lucide-react";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
+
 import BookingSummary from "@/components/BookingSummary";
 import BackgroundGradient from "@/components/BackgroundGradient";
+import PaymentMethod from "../_component/PaymentMethod";
 import { 
   Movie, Showtime, Theater, Seat, 
   movies, theaters, showtimes, sampleSeats 
@@ -25,7 +26,7 @@ interface FormState {
   phone: string;
 }
 
-type PaymentMethod = 'bank_transfer' | 'vnpay' | null;
+type PaymentMethod = 'bank_transfer' | 'vnpay' | 'momo' | null;
 
 export default function CheckoutPage({ params }: PageProps) {
   const router = useRouter();
@@ -295,127 +296,14 @@ export default function CheckoutPage({ params }: PageProps) {
                 
                 {/* Payment Methods */}
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold mb-6">Payment Method</h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Bank Transfer */}
-                    <div 
-                      className={`p-4 border rounded-xl cursor-pointer transition-all ${
-                        paymentMethod === 'bank_transfer' 
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
-                      }`}
-                      onClick={() => setPaymentMethod('bank_transfer')}
-                    >
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
-                          paymentMethod === 'bank_transfer' 
-                            ? 'border-primary-500' 
-                            : 'border-gray-400'
-                        }`}>
-                          {paymentMethod === 'bank_transfer' && (
-                            <div className="w-3 h-3 rounded-full bg-primary-500"></div>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Bank Transfer</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Transfer directly to our bank account
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {paymentMethod === 'bank_transfer' && (
-                        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <p className="text-sm font-medium">Bank account details:</p>
-                          <div className="mt-2 text-sm">
-                            <p>Bank: <span className="font-medium">Vietcombank</span></p>
-                            <p>Account number: <span className="font-medium">0123456789</span></p>
-                            <p>Account name: <span className="font-medium">MOVIE TICKETS JSC</span></p>
-                            <p>Content: <span className="font-medium">Payment for #{Math.floor(100000 + Math.random() * 900000)}</span></p>
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            Please transfer the exact amount shown in your booking summary. 
-                            Your seats will be reserved for 15 minutes.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* VNPay */}
-                    <div 
-                      className={`p-4 border rounded-xl cursor-pointer transition-all ${
-                        paymentMethod === 'vnpay' 
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
-                      }`}
-                      onClick={() => setPaymentMethod('vnpay')}
-                    >
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
-                          paymentMethod === 'vnpay' 
-                            ? 'border-primary-500' 
-                            : 'border-gray-400'
-                        }`}>
-                          {paymentMethod === 'vnpay' && (
-                            <div className="w-3 h-3 rounded-full bg-primary-500"></div>
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          <div className="mr-2">
-                            <Image
-                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752157602/payment_plrycn.jpg"
-                              alt="VNPay"
-                              width={50}
-                              height={25}
-                              className="object-contain"
-                            />
-                          </div>
-                          <div className="flex-shrink-0">
-                            <Image
-                              src="/images/vnpay-logo.png"
-                              alt="VNPay"
-                              width={50}
-                              height={25}
-                              className="object-contain"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {paymentMethod === 'vnpay' && (
-                        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="flex justify-center mb-3">
-                            <div className="w-32 h-32 bg-white p-2 rounded-lg flex items-center justify-center">
-                              {/* Mock QR code */}
-                              <div className="w-full h-full grid grid-cols-4 grid-rows-4 gap-1">
-                                {Array.from({ length: 16 }).map((_, i) => (
-                                  <div 
-                                    key={i}
-                                    className={`${
-                                      [0, 1, 4, 5, 10, 11, 14, 15].includes(i) 
-                                        ? 'bg-black' 
-                                        : 'bg-white border border-gray-200'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          <p className="text-center text-sm">
-                            Scan this QR code with your VNPay app or banking app
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-                            You will be redirected to VNPay payment gateway after clicking "Complete Booking"
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {errors.payment && (
-                    <p className="mt-2 text-sm text-red-500">{errors.payment}</p>
-                  )}
+                  <PaymentMethod
+                    paymentMethod={paymentMethod}
+                    totalPrice={selectedSeats.reduce((sum, seat) => sum + seat.price, 0)}
+                    movie={movie!}
+                    onPaymentMethodChange={setPaymentMethod}
+                    includeBankTransfer={true}
+                    errors={errors}
+                  />
                 </div>
                 
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
