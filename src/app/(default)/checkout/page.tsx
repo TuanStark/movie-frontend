@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ChevronLeft, CreditCard, User, MapPin, Calendar, Clock } from 'lucide-react';
 import { Movie, Theater, Showtime, Seat } from '@/types/global-type';
 import formatPrice from '@/types/format-price';
+import { useSession } from 'next-auth/react';
 
 interface BookingData {
   movieId: number;
@@ -26,6 +27,9 @@ interface CustomerInfo {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const user = useSession();
+  const userId = user.data?.user.id;
+  const token = user.data?.user.accessToken;
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     firstName: '',
@@ -33,12 +37,11 @@ export default function CheckoutPage() {
     email: '',
     phone: '',
   });
-  const [paymentMethod, setPaymentMethod] = useState<'bank_transfer' | 'vnpay'>('bank_transfer');
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
-  const [paymentProofPreview, setPaymentProofPreview] = useState<string>('');
-  const [showQRModal, setShowQRModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'vnpay' | 'momo'>('vnpay');
+
+
   const [isProcessing, setIsProcessing] = useState(false);
-  const [errors, setErrors] = useState<Partial<CustomerInfo & { paymentProof: string }>>({});
+  const [errors, setErrors] = useState<Partial<CustomerInfo>>({});
 
   useEffect(() => {
     // Get booking data from sessionStorage
@@ -50,29 +53,8 @@ export default function CheckoutPage() {
       router.push('/movies');
     }
   }, [router]);
-
-  // Handle ESC key to close QR modal
-  useEffect(() => {
-    const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showQRModal) {
-        setShowQRModal(false);
-      }
-    };
-
-    if (showQRModal) {
-      document.addEventListener('keydown', handleEscKey);
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscKey);
-      document.body.style.overflow = 'unset';
-    };
-  }, [showQRModal]);
-
   const validateForm = (): boolean => {
-    const newErrors: Partial<CustomerInfo & { paymentProof: string }> = {};
+    const newErrors: Partial<CustomerInfo> = {};
 
     if (!customerInfo.firstName.trim()) {
       newErrors.firstName = 'Họ là bắt buộc';
@@ -88,12 +70,6 @@ export default function CheckoutPage() {
     if (!customerInfo.phone.trim()) {
       newErrors.phone = 'Số điện thoại là bắt buộc';
     }
-
-    // Validate payment proof
-    if (!paymentProof) {
-      newErrors.paymentProof = 'Ảnh chuyển khoản là bắt buộc';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -106,36 +82,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Vui lòng chọn file ảnh');
-        return;
-      }
 
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File ảnh không được vượt quá 5MB');
-        return;
-      }
-
-      setPaymentProof(file);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPaymentProofPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Clear error
-      if (errors.paymentProof) {
-        setErrors(prev => ({ ...prev, paymentProof: undefined }));
-      }
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,35 +92,7 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
-      // Upload payment proof first
-      let paymentProofUrl = '';
-      if (paymentProof) {
-        const formData = new FormData();
-        formData.append('image', paymentProof);
-
-        const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          paymentProofUrl = uploadResult.url || uploadResult.data?.url || '';
-        }
-      }
-
-      // Create booking via API
-      // Option 1: Array of IDs (current)
       const seatIds = bookingData.seats.map(seat => seat.id);
-
-      // Option 2: Array of objects (if API needs this format)
-      // const seatIds = bookingData.seats.map(seat => ({ seatId: seat.id }));
-
-      // Option 3: String array (if API needs strings)
-      // const seatIds = bookingData.seats.map(seat => seat.id.toString());
-
-      console.log('Seat IDs to send:', seatIds);
-      console.log('Seat IDs type:', typeof seatIds[0]);
 
       // Validate seatIds
       if (!seatIds || seatIds.length === 0) {
@@ -190,26 +109,26 @@ export default function CheckoutPage() {
         return;
       }
 
-      const bookingPayload = {
-        userId: 3, // TODO: Get from auth context
-        showtimeId: bookingData.showtimeId,
-        seatIds: validSeatIds,
-        totalPrice: bookingData.totalPrice,
-        paymentMethod: paymentMethod.toUpperCase(),
-        images: paymentProofUrl,
-        customerInfo,
-      };
+      // Determine API endpoint based on payment method
+      const apiEndpoint = paymentMethod === 'vnpay'
+        ? `${process.env.NEXT_PUBLIC_API_URL}/booking/vnpay`
+        : `${process.env.NEXT_PUBLIC_API_URL}/booking/momo`;
+      // Create FormData for the API call (matching your curl example)
+      const formData = new FormData();
+      formData.append('userId', userId?.toString() || '');
+      formData.append('showtimeId', bookingData.showtimeId.toString());
+      formData.append('seatIds', JSON.stringify(validSeatIds));
+      formData.append('paymentMethod', paymentMethod.toUpperCase());
 
-      console.log('Original seats data:', bookingData.seats);
-      console.log('Creating booking with payload:', bookingPayload);
+      // Add customer info
+      formData.append('customerInfo', JSON.stringify(customerInfo));
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/booking`, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          // Authorization: `Bearer ${token?.accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(bookingPayload),
+        body: formData,
       });
 
       const bookingResult = await response.json();
@@ -217,24 +136,49 @@ export default function CheckoutPage() {
       if (!response.ok) {
         throw new Error(bookingResult.message || 'Đặt vé thất bại');
       }
-      console.log('Booking created:', bookingResult);
+      const paymentUrl = bookingResult.data?.payment?.vnpUrl ||
+                        bookingResult.data?.payment?.momoUrl;
 
-      // Store confirmation data
-      const confirmationData = {
-        ...bookingData,
-        customerInfo,
-        paymentMethod,
-        paymentProofUrl,
-        bookingCode: bookingResult.data?.bookingCode || `BK${Date.now()}`,
-        bookingDate: bookingResult.data?.bookingDate || new Date().toISOString(),
-        bookingId: bookingResult.data?.id,
-      };
+      if (paymentUrl) {
+        // Store booking data for when user returns from payment
+        const tempBookingData = {
+          ...bookingData,
+          customerInfo,
+          paymentMethod,
+          bookingCode: bookingResult.data?.booking?.bookingCode || `BK${Date.now()}`,
+          bookingDate: bookingResult.data?.booking?.bookingDate || new Date().toISOString(),
+          bookingId: bookingResult.data?.booking?.id,
+          paymentId: bookingResult.data?.payment?.id,
+        };
 
-      sessionStorage.setItem('confirmationData', JSON.stringify(confirmationData));
+        sessionStorage.setItem('pendingBookingData', JSON.stringify(tempBookingData));
+
+        // Redirect to our payment page with the payment URL
+        router.push(paymentUrl);
+        return;
+      }
+
+      // Create URL for confirmation page
+      const bookingCode = bookingResult.data?.booking?.bookingCode || `BK${Date.now()}`;
+      const confirmationParams = new URLSearchParams({
+        title: bookingData.movie.title,
+        posterPath: bookingData.movie.posterPath,
+        time: bookingData.showtime.time,
+        price: (bookingData.showtime.price / 1000).toString(),
+        date: bookingData.showtime.date,
+        paymentMethod: paymentMethod.toUpperCase(),
+        bookingDate: bookingResult.data?.booking?.bookingDate || new Date().toISOString(),
+        totalPrice: bookingData.totalPrice.toString(),
+        firstName: customerInfo.firstName,
+        lastName: customerInfo.lastName,
+        email: customerInfo.email,
+        status: 'confirmed'
+      });
+
       sessionStorage.removeItem('bookingData');
 
-      // Navigate to confirmation
-      router.push('/confirmation');
+      // Navigate to confirmation with bookingCode in path and other data in searchParams
+      router.push(`/confirmation/${bookingCode}?${confirmationParams.toString()}`);
     } catch (error) {
       console.error('Booking failed:', error);
       alert('Đặt vé thất bại. Vui lòng thử lại.');
@@ -370,8 +314,18 @@ export default function CheckoutPage() {
 
                 <div className="space-y-3">
                   {[
-                    { id: 'bank_transfer', label: 'Chuyển khoản ngân hàng', icon: '🏦' },
-                    { id: 'vnpay', label: 'VNPay', icon: '💳' },
+                    {
+                      id: 'vnpay',
+                      label: 'VNPay',
+                      icon: 'https://res.cloudinary.com/dz6k5kcol/image/upload/v1752237805/vnpay_pjdpfx.png',
+                      description: 'Thanh toán qua ví điện tử VNPay'
+                    },
+                    {
+                      id: 'momo',
+                      label: 'MoMo',
+                      icon: 'https://res.cloudinary.com/dz6k5kcol/image/upload/v1752237805/momo_nkf2wr.png',
+                      description: 'Thanh toán qua ví điện tử MoMo'
+                    },
                   ].map((method) => (
                     <label
                       key={method.id}
@@ -388,140 +342,192 @@ export default function CheckoutPage() {
                         onChange={(e) => setPaymentMethod(e.target.value as any)}
                         className="sr-only"
                       />
-                      <span className="text-2xl mr-3">{method.icon}</span>
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {method.label}
-                      </span>
+                      <Image
+                            src={method.icon}
+                            alt="MoMo Logo"
+                            width={48}
+                            height={48}
+                            className="object-contain mr-5"
+                          />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {method.label}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {method.description}
+                        </div>
+                      </div>
                     </label>
                   ))}
                 </div>
 
-                {/* QR Code for Bank Transfer */}
-                {paymentMethod === 'bank_transfer' && (
+                {/* VNPay Instructions */}
+                {paymentMethod === 'vnpay' && (
                   <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-3">
-                      Thông tin chuyển khoản
+                      Thanh toán VNPay
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="font-medium text-blue-700 dark:text-blue-300">Ngân hàng:</span>
-                          <span className="ml-2 text-blue-600 dark:text-blue-400">Vietcombank</span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-blue-700 dark:text-blue-300">Số tài khoản:</span>
-                          <span className="ml-2 text-blue-600 dark:text-blue-400">1234567890</span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-blue-700 dark:text-blue-300">Chủ tài khoản:</span>
-                          <span className="ml-2 text-blue-600 dark:text-blue-400">MOVIE TIX</span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-blue-700 dark:text-blue-300">Số tiền:</span>
-                          <span className="ml-2 text-blue-600 dark:text-blue-400 font-bold">
-                            {(totalPrice / 1000).toLocaleString()}k VND
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-blue-700 dark:text-blue-300">Nội dung:</span>
-                          <span className="ml-2 text-blue-600 dark:text-blue-400">
-                            MOVIE {movie.title.substring(0, 10)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex justify-center">
-                        <div className="bg-white p-4 rounded-lg shadow-md">
-                          <div
-                            className="relative w-32 h-32 sm:w-40 sm:h-40 cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setShowQRModal(true)}
-                          >
+                      {/* Payment Info */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shadow-sm">
                             <Image
-                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752157602/payment_plrycn.jpg"
-                              alt="QR Code for Payment"
-                              fill
-                              className="object-contain rounded"
-                              sizes="(max-width: 640px) 128px, 160px"
-                              priority
+                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752237805/vnpay_pjdpfx.png"
+                              alt="VNPay Logo"
+                              width={48}
+                              height={48}
+                              className="object-contain"
                             />
                           </div>
-                          <p className="text-xs text-center text-gray-600 mt-2">
-                            Bấm để phóng to QR code
+                          <div className="flex-1">
+                            <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                              Số tiền: <span className="font-bold">{(totalPrice / 1000).toLocaleString()}k VND</span>
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400">
+                              Thanh toán an toàn qua ví điện tử VNPay
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Payment Details */}
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-blue-700 dark:text-blue-300">Ngân hàng:</span>
+                            <span className="ml-2 text-blue-600 dark:text-blue-400">VNPay QR</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-blue-700 dark:text-blue-300">Số tiền:</span>
+                            <span className="ml-2 text-blue-600 dark:text-blue-400 font-bold">
+                              {(totalPrice).toLocaleString()} VND
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-blue-700 dark:text-blue-300">Nội dung:</span>
+                            <span className="ml-2 text-blue-600 dark:text-blue-400">
+                              MOVIE {movie.title.substring(0, 10)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-100 dark:bg-blue-800/30 p-3 rounded-lg">
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            <strong>Hướng dẫn:</strong> Nhấn nút "Thanh toán VNPay" bên dưới để chuyển đến trang thanh toán VNPay.
+                            Sau khi thanh toán thành công, bạn sẽ được chuyển về trang xác nhận.
                           </p>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                )}
 
-                {/* VNPay Instructions */}
-                {paymentMethod === 'vnpay' && (
-                  <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">
-                      Thanh toán VNPay
-                    </h3>
-                    <p className="text-sm text-orange-700 dark:text-orange-300">
-                      Sau khi đặt vé, bạn sẽ được chuyển đến trang VNPay để thanh toán.
-                      Vui lòng chụp ảnh màn hình kết quả thanh toán và tải lên bên dưới.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Payment Proof Upload */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
-                  Ảnh xác nhận thanh toán *
-                </h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tải lên ảnh chuyển khoản hoặc ảnh kết quả thanh toán
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    {errors.paymentProof && (
-                      <p className="text-red-500 text-sm mt-1">{errors.paymentProof}</p>
-                    )}
-                  </div>
-
-                  {/* Image Preview */}
-                  {paymentProofPreview && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Xem trước ảnh:
-                      </p>
-                      <div className="relative inline-block">
-                        <img
-                          src={paymentProofPreview}
-                          alt="Payment proof preview"
-                          className="max-w-xs max-h-48 rounded-lg border border-gray-300 dark:border-gray-600"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPaymentProof(null);
-                            setPaymentProofPreview('');
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
+                      {/* VNPay Action */}
+                      <div className="flex justify-center">
+                        <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                          <div className="w-24 h-24 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Image
+                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752237805/vnpay_pjdpfx.png"
+                              alt="VNPay Logo"
+                              width={48}
+                              height={48}
+                              className="object-contain"
+                            />
+                          </div>
+                          <h4 className="font-semibold text-gray-900 mb-2">
+                            Thanh toán VNPay
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Nhấn "Thanh toán VNPay" để chuyển đến trang thanh toán an toàn
+                          </p>
+                          <div className="text-lg font-bold text-blue-600">
+                            {(totalPrice / 1000).toLocaleString()}k VND
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
-
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
-                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>Lưu ý:</strong> Vui lòng chụp ảnh rõ nét, đầy đủ thông tin giao dịch
-                      bao gồm số tiền, thời gian và nội dung chuyển khoản.
-                    </p>
                   </div>
-                </div>
+                )}
+
+                {/* MoMo Instructions */}
+                {paymentMethod === 'momo' && (
+                  <div className="mt-6 p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
+                    <h3 className="font-semibold text-pink-800 dark:text-pink-200 mb-3">
+                      Thanh toán MoMo
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Payment Info */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                            <Image
+                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752237805/momo_nkf2wr.png"
+                              alt="MoMo Logo"
+                              width={48}
+                              height={48}
+                              className="object-contain"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm text-pink-700 dark:text-pink-300 font-medium">
+                              Số tiền: <span className="font-bold">{(totalPrice / 1000).toLocaleString()}k VND</span>
+                            </p>
+                            <p className="text-xs text-pink-600 dark:text-pink-400">
+                              Thanh toán nhanh chóng qua ví điện tử MoMo
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Payment Details */}
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-pink-700 dark:text-pink-300">Ví điện tử:</span>
+                            <span className="ml-2 text-pink-600 dark:text-pink-400">MoMo QR</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-pink-700 dark:text-pink-300">Số tiền:</span>
+                            <span className="ml-2 text-pink-600 dark:text-pink-400 font-bold">
+                              {(totalPrice).toLocaleString()} VND
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-pink-700 dark:text-pink-300">Nội dung:</span>
+                            <span className="ml-2 text-pink-600 dark:text-pink-400">
+                              MOVIE {movie.title.substring(0, 10)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-pink-100 dark:bg-pink-800/30 p-3 rounded-lg">
+                          <p className="text-sm text-pink-700 dark:text-pink-300">
+                            <strong>Hướng dẫn:</strong> Nhấn nút "Thanh toán MoMo" bên dưới để chuyển đến ứng dụng MoMo.
+                            Sau khi thanh toán thành công, bạn sẽ được chuyển về trang xác nhận.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* MoMo Action */}
+                      <div className="flex justify-center">
+                        <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                          <div className="w-24 h-24 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+                            <Image
+                              src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752237805/momo_nkf2wr.png"
+                              alt="MoMo Logo"
+                              width={48}
+                              height={48}
+                              className="object-contain"
+                            />
+                          </div>
+                          <h4 className="font-semibold text-gray-900 mb-2">
+                            Thanh toán MoMo
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Nhấn "Thanh toán MoMo" để chuyển đến ứng dụng MoMo
+                          </p>
+                          <div className="text-lg font-bold text-pink-600">
+                            {(totalPrice / 1000).toLocaleString()}k VND
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}
@@ -530,7 +536,10 @@ export default function CheckoutPage() {
                 disabled={isProcessing}
                 className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessing ? 'Đang xử lý...' : `Hoàn tất đặt vé - ${(totalPrice / 1000).toLocaleString()}k VND`}
+                {isProcessing
+                  ? 'Đang xử lý...'
+                  : `Thanh toán ${paymentMethod.toUpperCase()} - ${(totalPrice / 1000).toLocaleString()}k VND`
+                }
               </button>
             </form>
           </div>
@@ -660,66 +669,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* QR Code Modal */}
-      {showQRModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowQRModal(false)}
-        >
-          <div
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                QR Code Chuyển Khoản
-              </h3>
-              <button
-                onClick={() => setShowQRModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
 
-            <div className="flex justify-center mb-4">
-              <div className="bg-white p-4 rounded-lg shadow-sm border">
-                <div className="relative w-64 h-64">
-                  <Image
-                    src="https://res.cloudinary.com/dz6k5kcol/image/upload/v1752157602/payment_plrycn.jpg"
-                    alt="QR Code chuyển khoản"
-                    fill
-                    className="object-contain"
-                    sizes="256px"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center space-y-2">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Quét mã QR để chuyển khoản
-              </p>
-              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                <div><strong>Ngân hàng:</strong> Vietcombank</div>
-                <div><strong>Số tài khoản:</strong> 1234567890</div>
-                <div><strong>Chủ tài khoản:</strong> MOVIE TIX</div>
-                <div><strong>Số tiền:</strong> {(totalPrice / 1000).toLocaleString()}k VND</div>
-                <div><strong>Nội dung:</strong> MOVIE {movie.title.substring(0, 10)}</div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowQRModal(false)}
-              className="w-full mt-6 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

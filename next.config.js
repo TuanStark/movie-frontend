@@ -11,7 +11,8 @@ const nextConfig = {
       'cdn-media.sforum.vn',
       'cdn-media.sforum.vn',
       'www.google.com',
-      'res.cloudinary.com'
+      'res.cloudinary.com',
+      'via.placeholder.com'
     ], // For movie poster images and article images
   },
 };
