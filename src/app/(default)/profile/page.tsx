@@ -108,7 +108,7 @@ export default function ProfilePage() {
                 {user?.firstName} {user?.lastName}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
-              <div className="flex flex-raw gap-4">
+              <div className="flex flex-raw gap-4 items-center justify-center md:items-start md:justify-start">
                 <p className="mt-1 inline-block px-2 py-1 text-xs font-medium rounded-full bg-primary-800 text-primary-100">
                   {user?.role === "ADMIN" ? "Quản trị viên" : "Thành viên"}
                 </p>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4">
+              <div className="mt-4 flex flex-row justify-center md:justify-start gap-4 md:flex-wrap">
                 
                 <button
                   onClick={() => setActiveTab("settings")}
@@ -127,7 +127,7 @@ export default function ProfilePage() {
                     }`}
                 >
                   <UserCircle className="h-4 w-4" />
-                  <span>Hồ sơ</span>
+                  <span className="whitespace-nowrap">Hồ sơ</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("bookings")}
@@ -137,14 +137,14 @@ export default function ProfilePage() {
                     }`}
                 >
                   <Ticket className="h-4 w-4" />
-                  <span>Vé của tôi</span>
+                  <span className="whitespace-nowrap">Vé của tôi</span>
                 </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-1 px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-red-100 hover:text-red-700 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Đăng xuất</span>
+                  <span className="whitespace-nowrap">Đăng xuất</span>
                 </button>
               </div>
             </div>
