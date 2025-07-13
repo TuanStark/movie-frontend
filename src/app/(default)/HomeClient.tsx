@@ -18,7 +18,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json() as Promise<
 export default function HomeClient() {
     const [searchTerm, setSearchTerm] = useState("");
     const [featuredMovie, setFeaturedMovie] = useState<Movie[]>([]);
-    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+    const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
     const { data, error, isLoading } = useSWR<GenericResponse<Movie>>(
         `${process.env.NEXT_PUBLIC_API_URL}/movies?limit=5&sortOrder=desc`, // Thay bằng endpoint thực tế
