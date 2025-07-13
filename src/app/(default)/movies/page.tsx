@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Menu } from "lucide-react";
 import MovieCard from "@/components/MovieCard";
 import BackgroundGradient from "@/components/BackgroundGradient";
@@ -27,6 +27,7 @@ const fetcherGenre = (url: string) => fetch(url).then((res) => res.json() as Pro
 
 export default function MoviesPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [movies, setMovie] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -36,12 +37,38 @@ export default function MoviesPage() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1);
   const [limit, setLimit] = useState(Number(searchParams.get('limit')) || 10);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>(
-    searchParams.get('genres')?.split(',').filter(Boolean) || []
+  const [selectedGenres, setSelectedGenres] = useState<number[]>(
+    searchParams.get('genreIds')?.split(',').map(Number).filter(Boolean) || []
   );
   const [currentTab, setCurrentTab] = useState<'all' | 'now-showing' | 'coming-soon'>(
-    (searchParams.get('tab') as any) || 'all'
+    searchParams.get('upcoming') === 'true' ? 'coming-soon' : 'all'
   );
+
+  // Derived state: upcoming is true when tab is 'coming-soon'
+  const upcoming = currentTab === 'coming-soon';
+
+  // Function to update URL with current state
+  const updateURL = () => {
+    const params = new URLSearchParams();
+
+    if (searchTerm) params.set('search', searchTerm);
+    if (selectedGenres.length > 0) params.set('genreIds', selectedGenres.join(','));
+    if (upcoming) params.set('upcoming', 'true');
+    if (currentPage !== 1) params.set('page', currentPage.toString());
+    if (limit !== 10) params.set('limit', limit.toString());
+
+    const newUrl = `/movies${params.toString() ? `?${params.toString()}` : ''}`;
+    router.replace(newUrl);
+  };
+
+  // Sync state with URL parameters when they change
+  useEffect(() => {
+    setSearchTerm(searchParams.get('search') || '');
+    setCurrentPage(Number(searchParams.get('page')) || 1);
+    setLimit(Number(searchParams.get('limit')) || 10);
+    setSelectedGenres(searchParams.get('genreIds')?.split(',').map(Number).filter(Boolean) || []);
+    setCurrentTab(searchParams.get('upcoming') === 'true' ? 'coming-soon' : 'all');
+  }, [searchParams]);
 
 
 
@@ -57,12 +84,10 @@ export default function MoviesPage() {
     }
 
     if (selectedGenres.length > 0) {
-      params.append('genres', selectedGenres.join(','));
+      params.append('genreIds', selectedGenres.join(','));
     }
 
-    if (currentTab === 'now-showing') {
-      params.append('upcoming', 'false');
-    } else if (currentTab === 'coming-soon') {
+    if (upcoming) {
       params.append('upcoming', 'true');
     }
 
@@ -122,19 +147,67 @@ export default function MoviesPage() {
 
 
 
-  const handleGenreToggle = (genre: string) => {
-    setSelectedGenres(prev =>
-      prev.includes(genre)
-        ? prev.filter(g => g !== genre)
-        : [...prev, genre]
-    );
+  const handleGenreToggle = (id: number) => {
+    const newGenres = selectedGenres.includes(id)
+      ? selectedGenres.filter(g => g !== id)
+      : [...selectedGenres, id];
+
+    setSelectedGenres(newGenres);
     setCurrentPage(1); // Reset to page 1 when genres change
+
+    // Build URL manually to avoid encoding issues
+    const urlParts = [];
+    if (searchTerm) urlParts.push(`search=${encodeURIComponent(searchTerm)}`);
+    if (newGenres.length > 0) urlParts.push(`genreIds=${newGenres.join(',')}`);
+    if (upcoming) urlParts.push(`upcoming=true`);
+    if (limit !== 10) urlParts.push(`limit=${limit}`);
+
+    const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
+    router.replace(newUrl);
   };
 
   const clearFilters = () => {
     setSelectedGenres([]);
     setSearchTerm("");
     setCurrentPage(1);
+
+    // Build URL manually
+    const urlParts = [];
+    if (upcoming) urlParts.push(`upcoming=true`);
+    if (limit !== 10) urlParts.push(`limit=${limit}`);
+
+    const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
+    router.replace(newUrl);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+
+    // Build URL manually
+    const urlParts = [];
+    if (value) urlParts.push(`search=${encodeURIComponent(value)}`);
+    if (selectedGenres.length > 0) urlParts.push(`genreIds=${selectedGenres.join(',')}`);
+    if (upcoming) urlParts.push(`upcoming=true`);
+    if (limit !== 10) urlParts.push(`limit=${limit}`);
+
+    const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
+    router.replace(newUrl);
+  };
+
+  const handleTabChange = (tab: 'all' | 'now-showing' | 'coming-soon') => {
+    setCurrentTab(tab);
+    setCurrentPage(1);
+
+    // Build URL manually
+    const urlParts = [];
+    if (searchTerm) urlParts.push(`search=${encodeURIComponent(searchTerm)}`);
+    if (selectedGenres.length > 0) urlParts.push(`genreIds=${selectedGenres.join(',')}`);
+    if (tab === 'coming-soon') urlParts.push(`upcoming=true`);
+    if (limit !== 10) urlParts.push(`limit=${limit}`);
+
+    const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
+    router.replace(newUrl);
   };
   
 
@@ -165,10 +238,7 @@ export default function MoviesPage() {
               placeholder="Search movies..."
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-primary-500 focus:border-primary-500"
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
             <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
           </div>
@@ -204,8 +274,8 @@ export default function MoviesPage() {
                   genres.map(genre => (
                     <button
                       key={genre.id}
-                      onClick={() => handleGenreToggle(genre.name)}
-                      className={`px-3 py-1 rounded-full text-xs ${selectedGenres.includes(genre.name)
+                      onClick={() => handleGenreToggle(genre.id)}
+                      className={`px-3 py-1 rounded-full text-xs ${selectedGenres.includes(genre.id)
                         ? 'bg-primary-500 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
@@ -222,10 +292,7 @@ export default function MoviesPage() {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 dark:border-gray-700 mb-8">
           <button
-            onClick={() => {
-              setCurrentTab('all');
-              setCurrentPage(1);
-            }}
+            onClick={() => handleTabChange('all')}
             className={`px-6 py-3 font-medium text-sm ${currentTab === 'all'
               ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
               : 'text-gray-500 dark:text-gray-400'
@@ -234,22 +301,16 @@ export default function MoviesPage() {
             Tất cả phim
           </button>
           <button
-            onClick={() => {
-              setCurrentTab('now-showing');
-              setCurrentPage(1);
-            }}
+            onClick={() => handleTabChange('now-showing')}
             className={`px-6 py-3 font-medium text-sm ${currentTab === 'now-showing'
               ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
               : 'text-gray-500 dark:text-gray-400'
               }`}
           >
-            Đang thịnh hành
+            Đang chiếu
           </button>
           <button
-            onClick={() => {
-              setCurrentTab('coming-soon');
-              setCurrentPage(1);
-            }}
+            onClick={() => handleTabChange('coming-soon')}
             className={`px-6 py-3 font-medium text-sm ${currentTab === 'coming-soon'
               ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
               : 'text-gray-500 dark:text-gray-400'
@@ -292,17 +353,36 @@ export default function MoviesPage() {
             <Pagination
               meta={meta}
               currentPage={currentPage}
-              onPageChange={setCurrentPage}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                // Build URL manually
+                const urlParts = [];
+                if (searchTerm) urlParts.push(`search=${encodeURIComponent(searchTerm)}`);
+                if (selectedGenres.length > 0) urlParts.push(`genreIds=${selectedGenres.join(',')}`);
+                if (currentTab === 'coming-soon') urlParts.push(`upcoming=true`);
+                if (page !== 1) urlParts.push(`page=${page}`);
+                if (limit !== 10) urlParts.push(`limit=${limit}`);
+
+                const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
+                router.replace(newUrl);
+              }}
               onLimitChange={(newLimit) => {
                 setLimit(newLimit);
                 setCurrentPage(1);
+                // Build URL manually
+                const urlParts = [];
+                if (searchTerm) urlParts.push(`search=${encodeURIComponent(searchTerm)}`);
+                if (selectedGenres.length > 0) urlParts.push(`genreIds=${selectedGenres.join(',')}`);
+                if (currentTab === 'coming-soon') urlParts.push(`upcoming=true`);
+                if (newLimit !== 10) urlParts.push(`limit=${newLimit}`);
+
+                const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
+                router.replace(newUrl);
               }}
               showLimitSelector={true}
               limitOptions={[5, 8, 10, 20]}
               className="justify-center"
-              syncWithURL={true}
-              basePath="/movies"
-              preserveParams={['search', 'genres', 'tab']}
+              syncWithURL={false}
             />
           </div>
         )}
