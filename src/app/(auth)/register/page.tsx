@@ -122,7 +122,6 @@ export default function RegisterPage() {
         return;
       }
       if (data?.data?.id) {
-        console.log(data);
         router.push(`/verify/${data.data.id}`);
       } else {
         setErrors({ general: "Đăng ký thành công nhưng thiếu thông tin người dùng. Vui lòng thử đăng nhập." });

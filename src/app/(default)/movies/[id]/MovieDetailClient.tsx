@@ -27,7 +27,6 @@ export default function MovieDetailClient({ movieId }: MovieDetailClientProps) {
       fallbackData: null
     }
   );
-  console.log("showtimesData", showtimesData);
 
   useEffect(() => {
     // Use API data if available

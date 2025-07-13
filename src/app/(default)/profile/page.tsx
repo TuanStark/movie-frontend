@@ -24,7 +24,6 @@ export default function ProfilePage() {
         }
       });
       const data = await res.json();
-      console.log(data.data);
       setUser(data.data);
       // Set user bookings from the API response
       if (data.data?.bookings) {
@@ -46,7 +45,6 @@ export default function ProfilePage() {
   }, [status, session]);
 
   const handleLogout = async () => {
-    console.log("Profile logout clicked");
 
     try {
       const result = await signOut({
@@ -54,7 +52,6 @@ export default function ProfilePage() {
         redirect: false
       });
 
-      console.log("Profile logout result:", result);
 
       if (result?.url) {
         window.location.href = result.url;

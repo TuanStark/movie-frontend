@@ -34,7 +34,6 @@ export default function HomeClient() {
             setFeaturedMovie(data.data.data);
         }
     }, [data]);
-    console.log(data)
 
     if (isLoading) return <HomeSkeleton />;
     if (error) return (

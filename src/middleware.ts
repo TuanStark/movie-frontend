@@ -33,7 +33,6 @@ export default auth((req) => {
     pathname.startsWith('/public');
 
   if (isPublicRoute || isStaticAsset) {
-    console.log('✅ Public route or static asset, allowing access');
     return;
   }
 
@@ -48,8 +47,6 @@ export default auth((req) => {
     url.searchParams.set('callbackUrl', req.url);
     return Response.redirect(url);
   }
-
-  console.log('✅ Allowing access to:', pathname);
 });
 
 // ⚙️ Matcher: chạy middleware cho tất cả trừ file tĩnh

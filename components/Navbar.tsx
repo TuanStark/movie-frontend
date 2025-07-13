@@ -26,7 +26,6 @@ export default function Navbar() {
         }
       });
       const data = await res.json();
-      console.log(data.data);
       setUser(data.data);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -45,16 +44,12 @@ export default function Navbar() {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log("Logout button clicked");
-
     // Close dropdown immediately
     setIsOpen(false);
 
     // Add a small delay to ensure state updates
     setTimeout(async () => {
       try {
-        console.log("Attempting to sign out...");
 
         // Try the NextAuth signOut first
         await signOut({
@@ -76,14 +71,12 @@ export default function Navbar() {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log("Mobile logout button clicked");
 
     // Close mobile menu immediately
     setIsMenuOpen(false);
 
     setTimeout(async () => {
       try {
-        console.log("Attempting mobile sign out...");
 
         await signOut({
           callbackUrl: "/",

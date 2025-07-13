@@ -2,20 +2,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import useSWR from 'swr';
-import type { Movie, Showtime, Theater } from "@/types/global-type";
+import type { Showtime, Theater } from "@/types/global-type";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ScheduleMovie() {
     const [selectedDate, setSelectedDate] = useState<string>("");
 
-    // Fetch movies from API
-    const { data: moviesData, isLoading: moviesLoading } = useSWR(
-      `${process.env.NEXT_PUBLIC_API_URL}/movies`,
-      fetcher
-    );
-
-    // Fetch showtimes from API
     const { data: showtimesData, isLoading: showtimesLoading } = useSWR(
       `${process.env.NEXT_PUBLIC_API_URL}/show-times`,
       fetcher
@@ -27,9 +20,8 @@ export default function ScheduleMovie() {
       setSelectedDate(today.toISOString().split('T')[0]);
     }, []);
 
-    const movies: Movie[] = moviesData?.data || [];
-    const showtimes: Showtime[] = showtimesData?.data || [];
-    const isLoading = moviesLoading || showtimesLoading;
+    const showtimes: Showtime[] = showtimesData?.data?.data || [];
+    const isLoading = showtimesLoading;
 
     if (isLoading) {
       return (
@@ -106,9 +98,23 @@ export default function ScheduleMovie() {
           
           <div className="space-y-8">
             {(() => {
-              // Check if there are any showtimes for the selected date
-              const hasShowtimesForDate = showtimes && showtimes.length > 0 && showtimes.some(st => st.date === selectedDate);
-              
+              const normalizeDate = (dateStr: string) => {
+                if (!dateStr) {
+                  return '';
+                }
+                if (dateStr.includes('T')) {
+                  const normalized = dateStr.split('T')[0];
+                  return normalized;
+                }
+                const date = new Date(dateStr);
+                const normalized = date.toISOString().split('T')[0];
+                return normalized;
+              };
+              const hasShowtimesForDate = showtimes && showtimes.length > 0 && showtimes.some(st => {
+                const showtimeDate = normalizeDate(st.date);
+                const matches = showtimeDate === selectedDate;
+                return matches;
+              });
               if (!hasShowtimesForDate) {
                 return (
                   <div className="py-12 text-center">
@@ -129,8 +135,14 @@ export default function ScheduleMovie() {
               }
               
               // Group showtimes by theater for the selected date
-              const showtimesByTheater = (showtimes || [])
-                .filter(st => st.date === selectedDate)
+              const filteredShowtimes = (showtimes || [])
+                .filter(st => {
+                  const showtimeDate = normalizeDate(st.date);
+                  return showtimeDate === selectedDate;
+                });
+
+              // Group by theater
+              const showtimesByTheater = filteredShowtimes
                 .reduce((acc: Record<number, { theater: Theater; showtimes: Showtime[] }>, showtime) => {
                   const theaterId = showtime.theaterId;
                   if (!acc[theaterId]) {
@@ -143,7 +155,27 @@ export default function ScheduleMovie() {
                   return acc;
                 }, {});
 
-              return Object.values(showtimesByTheater).map(({ theater, showtimes: theaterShowtimes }) => (
+              // Group showtimes by movie within each theater
+              const theaterGroups = Object.values(showtimesByTheater).map(({ theater, showtimes: theaterShowtimes }) => {
+                const movieGroups = theaterShowtimes.reduce((acc: Record<number, { movie: any; showtimes: Showtime[] }>, showtime) => {
+                  const movieId = showtime.movieId;
+                  if (!acc[movieId]) {
+                    acc[movieId] = {
+                      movie: showtime.movie,
+                      showtimes: []
+                    };
+                  }
+                  acc[movieId].showtimes.push(showtime);
+                  return acc;
+                }, {});
+
+                return {
+                  theater,
+                  movieGroups: Object.values(movieGroups)
+                };
+              });
+
+              return theaterGroups.map(({ theater, movieGroups }) => (
                 <div key={theater.id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0 last:pb-0">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="bg-primary-100 dark:bg-primary-900/30 p-2 rounded-lg">
@@ -161,55 +193,43 @@ export default function ScheduleMovie() {
                     </div>
                   </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {(movies || [])
-                        .filter(movie => !movie.upcoming)
-                        .map(movie => {
-                          // Find showtimes for this movie and theater on selected date
-                          const movieShowtimes = theaterShowtimes.filter(
-                            (st) => st.movieId === movie.id
-                          );
-
-                          // Only show movies that have showtimes
-                          if (movieShowtimes.length === 0) return null;
-
-                          return (
-                            <div key={movie.id} className="flex p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-                              <div className="w-16 h-24 flex-shrink-0 relative overflow-hidden rounded">
-                                <Image
-                                  src={movie.posterPath}
-                                  alt={movie.title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <div className="ml-4 flex-grow">
-                                <h5 className="font-bold mb-1 line-clamp-1">{movie.title}</h5>
-                                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                  <span className="mr-2">{movie.duration}</span>
-                                  <span>•</span>
-                                  <span className="mx-2">
-                                    {movie.genres.slice(0, 2).map(g => g.genre.name).join(", ")}
-                                  </span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {movieShowtimes.map((st) => (
-                                    <Link
-                                      key={st.id}
-                                      href={`/booking/${movie.id}?showtime=${st.id}`}
-                                      className="text-sm px-3 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
-                                    >
-                                      {st.time}
-                                    </Link>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
+                  <div className="space-y-4">
+                    {movieGroups.map(({ movie, showtimes: movieShowtimes }) => (
+                      <div key={movie.id} className="flex p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                        <div className="w-16 h-24 flex-shrink-0 relative overflow-hidden rounded">
+                          <Image
+                            src={movie.posterPath}
+                            alt={movie.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="ml-4 flex-grow">
+                          <h5 className="font-bold mb-1 line-clamp-1">{movie.title}</h5>
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            <span className="mr-2">{movie.duration}</span>
+                            <span>•</span>
+                            <span className="mx-2">
+                              {movie.genres?.slice(0, 2).map((g: any) => g.genre.name).join(", ")}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {movieShowtimes.map((showtime: any) => (
+                              <Link
+                                key={showtime.id}
+                                href={`/booking/${movie.id}?showtime=${showtime.id}`}
+                                className="text-sm px-3 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
+                              >
+                                {showtime.time}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ));
+                </div>
+              ));
             })()}
           </div>
         </div>

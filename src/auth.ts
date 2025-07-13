@@ -27,7 +27,6 @@ export const authOptions: NextAuthConfig = {
           });
 
           const authData = await loginRes.json();
-          console.log("Login response:", authData);
 
           if (!loginRes.ok || !authData?.data) {
             throw new Error(authData.message || "Đăng nhập thất bại");
@@ -43,7 +42,6 @@ export const authOptions: NextAuthConfig = {
           });
 
           const profileData = await profileRes.json();
-          console.log("Profile response:", profileData);
 
           if (!profileRes.ok || !profileData) {
             // If profile fetch fails, use data from login response
@@ -167,7 +165,6 @@ export const authOptions: NextAuthConfig = {
         session.user.refreshToken = token.refreshToken;
         session.user.accessTokenExpires = token.accessTokenExpires;
       }
-      console.log("Session:", session);
       return session;
     },
     async redirect({ url, baseUrl }) {

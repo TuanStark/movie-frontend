@@ -60,7 +60,6 @@ export default function LoginPage() {
         setIsLoading(false);
       } else if (result?.ok) {
         // Đăng nhập thành công, redirect về trang được yêu cầu
-        console.log("Login successful, redirecting to:", callbackUrl);
 
         // Đảm bảo callbackUrl hợp lệ và không phải là trang login
         const redirectUrl = callbackUrl && callbackUrl !== "/login" ? callbackUrl : "/";

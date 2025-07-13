@@ -22,7 +22,6 @@ async function getArticleById(id: string): Promise<Articles | null> {
     }
 
     const data = await response.json();
-    // console.log(data)
 
     // Handle different response structures
     return data.data || null;
@@ -35,7 +34,6 @@ async function getArticleById(id: string): Promise<Articles | null> {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const article = await getArticleById(params.id);
-  // console.log(article)
 
   if (!article) {
     return {
@@ -70,9 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ArticleDetailPage({params} : PageProps) {
-  // console.log(params.id)
   const article = await getArticleById(params.id);
-  // console.log(article)
 
   if (!article) {
     notFound();
