@@ -51,7 +51,25 @@ export default function ProfilePage() {
   }, [status, session]);
   
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });
+    console.log("Profile logout clicked");
+
+    try {
+      const result = await signOut({
+        callbackUrl: "/",
+        redirect: false
+      });
+
+      console.log("Profile logout result:", result);
+
+      if (result?.url) {
+        window.location.href = result.url;
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Profile logout error:", error);
+      window.location.href = "/";
+    }
   };
   
   const handleDeleteBooking = (bookingId: number) => {

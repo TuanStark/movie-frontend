@@ -19,10 +19,61 @@ export default function Navbar() {
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
-  const handleLogout = () => {
-    signOut({
-      callbackUrl: "/",
-    });
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Logout button clicked");
+
+    // Close dropdown immediately
+    setIsOpen(false);
+
+    // Add a small delay to ensure state updates
+    setTimeout(async () => {
+      try {
+        console.log("Attempting to sign out...");
+
+        // Try the NextAuth signOut first
+        await signOut({
+          callbackUrl: "/",
+          redirect: true
+        });
+
+      } catch (error) {
+        console.error("Logout error:", error);
+        // Fallback: force redirect to home page and clear session
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/";
+      }
+    }, 100);
+  };
+
+  const handleMobileLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Mobile logout button clicked");
+
+    // Close mobile menu immediately
+    setIsMenuOpen(false);
+
+    setTimeout(async () => {
+      try {
+        console.log("Attempting mobile sign out...");
+
+        await signOut({
+          callbackUrl: "/",
+          redirect: true
+        });
+
+      } catch (error) {
+        console.error("Mobile logout error:", error);
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/";
+      }
+    }, 100);
   };
 
   return (
@@ -104,17 +155,15 @@ export default function Navbar() {
                         Hồ sơ cá nhân
                       </div>
                     </Link>
-                    <Link
-                      href="/logout"
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                      <button onClick={handleLogout}>
-                        <div className="flex items-center gap-2">
-                          <LogOut size={18} className="mr-2" />
-                          Đăng xuất
-                        </div>
-                      </button>
-                    </Link>
+                      <div className="flex items-center gap-2">
+                        <LogOut size={18} className="mr-2" />
+                        Đăng xuất
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -164,13 +213,22 @@ export default function Navbar() {
 
             {/* Mobile auth buttons */}
             {status === "authenticated" && session?.user ? (
-              <Link
-                href="/profile"
-                className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400"
-              >
-                <User size={18} className="mr-2" />
-                <span>My Profile</span>
-              </Link>
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400"
+                >
+                  <User size={18} className="mr-2" />
+                  <span>My Profile</span>
+                </Link>
+                <button
+                  onClick={handleMobileLogout}
+                  className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400"
+                >
+                  <LogOut size={18} className="mr-2" />
+                  <span>Đăng xuất</span>
+                </button>
+              </>
             ) : (
               <>
                 <Link
