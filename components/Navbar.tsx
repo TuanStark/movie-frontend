@@ -2,19 +2,42 @@
 
 import Link from "next/link";
 import { Moon, Sun, Menu, X, User, LogIn, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "./providers/ThemeProvider";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
+import { Users } from "@/types/global-type";
 
 export default function Navbar() {
+  const [user, setUser] = useState<Users | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { data: session, status } = useSession();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/${session?.user?.id}`, {
+        headers: {
+          Authorization: `Bearer ${session?.user?.accessToken}`
+        }
+      });
+      const data = await res.json();
+      console.log(data.data);
+      setUser(data.data);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.id) {
+      fetchUser();
+    }
+  }, [status, session]);
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
@@ -127,10 +150,10 @@ export default function Navbar() {
                   href="/profile"
                   className="flex items-center space-x-1"
                 >
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    {session.user.image ? (
+                  <div className="relative w-8 h-8 mr-3 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    {user?.avatar ? (
                       <Image
-                        src={session.user.image}
+                        src={user?.avatar || "/default-avatar.png"}
                         alt={session.user.name || "User"}
                         fill
                         className="object-cover"
@@ -140,7 +163,7 @@ export default function Navbar() {
                     )}
                   </div>
                   <span className="hidden lg:inline-block text-sm font-medium">
-                    {session.user.name?.split(" ")[0] || "Account"}
+                    {user?.firstName || "Account"} {user?.lastName || ""}
                   </span>
                 </Link>
                 {isOpen && (
