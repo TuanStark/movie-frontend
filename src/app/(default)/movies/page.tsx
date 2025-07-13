@@ -32,6 +32,7 @@ export default function MoviesPage() {
   const [movies, setMovie] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Get state from URL parameters
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -44,35 +45,23 @@ export default function MoviesPage() {
     searchParams.get('upcoming') === 'true' ? 'coming-soon' : 'all'
   );
 
-  // Derived state: upcoming is true when tab is 'coming-soon'
   const upcoming = currentTab === 'coming-soon';
 
-  // Function to update URL with current state
-  const updateURL = () => {
-    const params = new URLSearchParams();
-
-    if (searchTerm) params.set('search', searchTerm);
-    if (selectedGenres.length > 0) params.set('genreIds', selectedGenres.join(','));
-    if (upcoming) params.set('upcoming', 'true');
-    if (currentPage !== 1) params.set('page', currentPage.toString());
-    if (limit !== 10) params.set('limit', limit.toString());
-
-    const newUrl = `/movies${params.toString() ? `?${params.toString()}` : ''}`;
-    router.replace(newUrl);
-  };
-
-  // Sync state with URL parameters when they change
   useEffect(() => {
     setSearchTerm(searchParams.get('search') || '');
     setCurrentPage(Number(searchParams.get('page')) || 1);
     setLimit(Number(searchParams.get('limit')) || 10);
     setSelectedGenres(searchParams.get('genreIds')?.split(',').map(Number).filter(Boolean) || []);
-    setCurrentTab(searchParams.get('upcoming') === 'true' ? 'coming-soon' : 'all');
+    const upcomingParam = searchParams.get('upcoming');
+    if (upcomingParam === 'true') {
+      setCurrentTab('coming-soon');
+    } else if (upcomingParam === 'false') {
+      setCurrentTab('now-showing');
+    } else {
+      setCurrentTab('all');
+    }
   }, [searchParams]);
 
-
-
-  // Tạo URL với search và filter parameters
   const buildApiUrl = () => {
     const params = new URLSearchParams({
       page: currentPage.toString(),
@@ -87,8 +76,10 @@ export default function MoviesPage() {
       params.append('genreIds', selectedGenres.join(','));
     }
 
-    if (upcoming) {
+    if (currentTab === 'coming-soon') {
       params.append('upcoming', 'true');
+    } else if (currentTab === 'now-showing') {
+      params.append('upcoming', 'false');
     }
 
     return `${process.env.NEXT_PUBLIC_API_URL}/movies?${params.toString()}`;
@@ -113,14 +104,16 @@ export default function MoviesPage() {
     }
   );
 
+  const handleOpenFilte = (isOpen: boolean) => {
+    setIsFilterOpen(isOpen);
+  };
+
   useEffect(() => {
     if (data) {
-      // Handle flat structure: { data: [...], meta: {...} }
       if (data.data && Array.isArray(data.data) && data.meta) {
         setMovie(data.data);
         setMeta(data.meta);
       }
-      // Handle nested structure: { data: { data: [...], meta: {...} } }
       else if ((data as any).data?.data && (data as any).data?.meta) {
         setMovie((data as any).data.data);
         setMeta((data as any).data.meta);
@@ -130,22 +123,16 @@ export default function MoviesPage() {
 
   useEffect(() => {
     if (genresData) {
-      // Handle flat structure: { data: [...], meta: {...} }
       if (genresData.data && Array.isArray(genresData.data)) {
         setGenres(genresData.data);
       }
-      // Handle nested structure: { data: { data: [...], meta: {...} } }
       else if ((genresData as any).data?.data) {
         setGenres((genresData as any).data.data);
       }
     }
   }, [genresData]);
 
-
-  // Sử dụng movies trực tiếp vì đã được filter từ server
   const filteredMovies = movies;
-
-
 
   const handleGenreToggle = (id: number) => {
     const newGenres = selectedGenres.includes(id)
@@ -155,7 +142,6 @@ export default function MoviesPage() {
     setSelectedGenres(newGenres);
     setCurrentPage(1); // Reset to page 1 when genres change
 
-    // Build URL manually to avoid encoding issues
     const urlParts = [];
     if (searchTerm) urlParts.push(`search=${encodeURIComponent(searchTerm)}`);
     if (newGenres.length > 0) urlParts.push(`genreIds=${newGenres.join(',')}`);
@@ -171,9 +157,12 @@ export default function MoviesPage() {
     setSearchTerm("");
     setCurrentPage(1);
 
-    // Build URL manually
     const urlParts = [];
-    if (upcoming) urlParts.push(`upcoming=true`);
+    if (currentTab === 'coming-soon') {
+      urlParts.push(`upcoming=true`);
+    } else if (currentTab === 'now-showing') {
+      urlParts.push(`upcoming=false`);
+    }
     if (limit !== 10) urlParts.push(`limit=${limit}`);
 
     const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
@@ -184,11 +173,14 @@ export default function MoviesPage() {
     setSearchTerm(value);
     setCurrentPage(1);
 
-    // Build URL manually
     const urlParts = [];
     if (value) urlParts.push(`search=${encodeURIComponent(value)}`);
     if (selectedGenres.length > 0) urlParts.push(`genreIds=${selectedGenres.join(',')}`);
-    if (upcoming) urlParts.push(`upcoming=true`);
+    if (currentTab === 'coming-soon') {
+      urlParts.push(`upcoming=true`);
+    } else if (currentTab === 'now-showing') {
+      urlParts.push(`upcoming=false`);
+    }
     if (limit !== 10) urlParts.push(`limit=${limit}`);
 
     const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
@@ -199,22 +191,25 @@ export default function MoviesPage() {
     setCurrentTab(tab);
     setCurrentPage(1);
 
-    // Build URL manually
     const urlParts = [];
     if (searchTerm) urlParts.push(`search=${encodeURIComponent(searchTerm)}`);
     if (selectedGenres.length > 0) urlParts.push(`genreIds=${selectedGenres.join(',')}`);
-    if (tab === 'coming-soon') urlParts.push(`upcoming=true`);
+    if (tab === 'coming-soon') {
+      urlParts.push(`upcoming=true`);
+    } else if (tab === 'now-showing') {
+      urlParts.push(`upcoming=false`);
+    }
+    // For 'all' tab, don't add upcoming parameter
     if (limit !== 10) urlParts.push(`limit=${limit}`);
 
     const newUrl = `/movies${urlParts.length > 0 ? `?${urlParts.join('&')}` : ''}`;
     router.replace(newUrl);
   };
-  
+
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <BackgroundGradient />
-      {/* <Navbar /> */}
 
       {/* Page Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 py-16">
@@ -244,48 +239,55 @@ export default function MoviesPage() {
           </div>
 
           {/* Filters dropdown */}
-          <div className="relative group">
-            <button className="flex items-center px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750">
+          <div className="relative">
+            <button
+              className="flex items-center px-4 py-3 rounded-xl border border-gray-200 
+            dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 
+            dark:hover:bg-gray-750 w-full md:w-auto"
+              onClick={() => handleOpenFilte(!isFilterOpen)}
+            >
               <Menu className="h-5 w-5 mr-2" />
               Filters {selectedGenres.length > 0 && `(${selectedGenres.length})`}
             </button>
 
-            <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-20 hidden group-hover:block">
-              <div className="grid grid-cols-2 items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Genres</h3>
-                {selectedGenres.length > 0 && (
-                  <div className="text-right">
-                    <button
-                      onClick={clearFilters}
-                      className="text-sm text-primary-600 hover:underline"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                )}
+            {isFilterOpen && (
+              <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-20">
+                <div className="grid grid-cols-2 items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Genres</h3>
+                  {selectedGenres.length > 0 && (
+                    <div className="text-right">
+                      <button
+                        onClick={clearFilters}
+                        className="text-sm text-primary-600 hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {isLoadingGenres ? (
+                    // Skeleton for genres
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                    ))
+                  ) : (
+                    genres.map(genre => (
+                      <button
+                        key={genre.id}
+                        onClick={() => handleGenreToggle(genre.id)}
+                        className={`px-3 py-1 rounded-full text-xs ${selectedGenres.includes(genre.id)
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                          }`}
+                      >
+                        {genre.name}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {isLoadingGenres ? (
-                  // Skeleton for genres
-                  Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-                  ))
-                ) : (
-                  genres.map(genre => (
-                    <button
-                      key={genre.id}
-                      onClick={() => handleGenreToggle(genre.id)}
-                      className={`px-3 py-1 rounded-full text-xs ${selectedGenres.includes(genre.id)
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                        }`}
-                    >
-                      {genre.name}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
