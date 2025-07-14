@@ -4,7 +4,7 @@ import Footer from '../../../components/Footer';
 import Navbar from '../../../components/Navbar';
 import AuthProvider from '@/components/providers/AuthProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
-import { useSession } from 'next-auth/react';
+import ChatbotServer from '@/components/ChatBotServer';
 
 export const metadata: Metadata = {
     icons: {
@@ -25,6 +25,7 @@ export default function DefaultLayout({
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                 <Navbar />
                 <main>{children}</main>
+                <ChatbotServer />
                 <Footer />
             </ThemeProvider>
         </AuthProvider>
