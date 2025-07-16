@@ -89,7 +89,7 @@ export default function CheckoutPage() {
         throw new Error(bookingResult.message || 'Đặt vé thất bại');
       }
       const paymentUrl = bookingResult.data?.payment?.vnpUrl ||
-        bookingResult.data?.payment?.momoUrl;
+        bookingResult.data?.payment?.payUrl;
 
       if (paymentUrl) {
         // Store booking data for when user returns from payment
