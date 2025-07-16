@@ -11,10 +11,28 @@ export interface Movie {
   actors: string;
 }
 
+export interface Theater {
+  id: number;
+  name: string;
+  address: string;
+  logo?: string;
+}
+
+export interface Showtime {
+  id: number;
+  movieId: number;
+  theaterId: number;
+  date: string;
+  time: string;
+  price: number;
+  movie: Movie;
+  theater: Theater;
+}
+
 export interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
-  data?: Movie[]; // Add data field for movie cards
+  data?: (Movie | Showtime)[]; // Support both Movie and Showtime data
 }

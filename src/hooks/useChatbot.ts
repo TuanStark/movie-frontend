@@ -63,32 +63,35 @@ export const useChatbot = () => {
 
     setMessages(prev => [...prev, userMessage]);
     const currentInput = inputText;
+    console.log(currentInput);
     setInputText('');
     setIsTyping(true);
     setShowQuickReplies(false);
 
     try {
       // Call chatbot API
-      const response = await fetch('http://localhost:8000/chat-bot', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat-bot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          question: currentInput
+          message: currentInput
         })
       });
+      console.log(response);
 
       if (!response.ok) {
         throw new Error('Failed to get response from chatbot');
       }
 
       const data = await response.json();
+      console.log(data);
       setIsConnected(true);
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.answer || 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.',
+        text: data.message || 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.',
         sender: 'bot',
         timestamp: new Date(),
         data: data.data || undefined // Include movie data if available

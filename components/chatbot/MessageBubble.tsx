@@ -1,11 +1,18 @@
-import { Message } from '../../types/types';
+import { Message, Movie, Showtime } from '../../types/types';
 import { MovieCard } from './MovieCard';
 
 interface MessageBubbleProps {
   message: Message;
 }
 
+const isShowtime = (item: Movie | Showtime): item is Showtime => {
+  return 'movie' in item && 'theater' in item && 'date' in item && 'time' in item;
+};
+
 export const MessageBubble = ({ message }: MessageBubbleProps) => {
+  if(message.data) {
+    console.log(message.data);
+  }
   return (
     <div
       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -29,12 +36,27 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
           </p>
         </div>
         
-        {/* Movie Cards */}
         {message.sender === 'bot' && message.data && message.data.length > 0 && (
           <div className="space-y-2 max-w-xs lg:max-w-md">
-            {message.data.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
+            {message.data.map((item) => {
+              if (isShowtime(item)) {
+                return (
+                  <MovieCard
+                    key={`showtime-${item.id}`}
+                    showtime={item}
+                    displayMode="showtime"
+                  />
+                );
+              } else {
+                return (
+                  <MovieCard
+                    key={`movie-${item.id}`}
+                    movie={item}
+                    displayMode="movie"
+                  />
+                );
+              }
+            })}
           </div>
         )}
       </div>
