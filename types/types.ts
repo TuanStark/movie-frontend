@@ -36,3 +36,23 @@ export interface Message {
   timestamp: Date;
   data?: (Movie | Showtime)[]; // Support both Movie and Showtime data
 }
+
+export interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+}
+
+export interface Comment {
+  id: number;
+  userId: number;
+  movieId: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+  user: User;
+  movie: Movie;
+}

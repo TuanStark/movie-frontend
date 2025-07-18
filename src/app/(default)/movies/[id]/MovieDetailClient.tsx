@@ -139,13 +139,13 @@ export default function MovieDetailClient({ movieId }: MovieDetailClientProps) {
           })
         ) : (
           <p className="text-center py-4 text-gray-500 dark:text-gray-400">
-            No showtimes available for this movie.
+            Không có suất chiếu phim nào vào ngày {new Date(selectedDate).toLocaleDateString('vi-VN')}. Vui lòng chọn một ngày khác.
           </p>
         )}
 
         {movieShowtimes.length > 0 && (
           <button className="btn-primary w-full mt-4">
-            Show All Showtimes
+            Xem tất cả các suất chiếu
           </button>
         )}
       </div>

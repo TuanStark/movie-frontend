@@ -3,7 +3,9 @@ import { Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import MovieDetailClient from "./MovieDetailClient";
+import { CommentList } from "@/components/comments";
 import { Movie } from "@/types/global-type";
+import { Comment } from "@/types/types";
 
 
 interface PageProps {
@@ -31,6 +33,26 @@ async function getMovie(id: string): Promise<Movie | null> {
   } catch (error) {
     console.error('Error fetching movie:', error);
     return null;
+  }
+}
+
+// Fetch initial comments for the movie
+async function getMovieComments(movieId: string): Promise<Comment[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/movie-review/movie/${movieId}?page=1&limit=10&sortBy=newest`,
+      { next: { revalidate: 300 } } // Revalidate every 5 minutes
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.data?.data || [];
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return [];
   }
 }
 
@@ -79,7 +101,10 @@ export async function generateStaticParams() {
 }
 
 export default async function MovieDetail({ params }: PageProps) {
-  const movie = await getMovie(params.id);
+  const [movie, initialComments] = await Promise.all([
+    getMovie(params.id),
+    getMovieComments(params.id)
+  ]);
 
   if (!movie) {
     notFound();
@@ -131,7 +156,7 @@ export default async function MovieDetail({ params }: PageProps) {
 
             {/* Synopsis */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Synopsis</h2>
+              <h2 className="text-xl font-semibold mb-4">Nội dung</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {movie.synopsis || 'No synopsis available.'}
               </p>
@@ -139,18 +164,18 @@ export default async function MovieDetail({ params }: PageProps) {
 
             {/* Details */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Details</h2>
+              <h2 className="text-xl font-semibold mb-4">Thông tin chi tiết</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Director</p>
+                  <p className="text-gray-500 dark:text-gray-400">Đạo diễn</p>
                   <p>{movie.director || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Release Date</p>
+                  <p className="text-gray-500 dark:text-gray-400">Ngày phát hành</p>
                   <p>{movie.releaseDate ? new Date(movie.releaseDate).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  <p className="text-gray-500 dark:text-gray-400">Cast</p>
+                  <p className="text-gray-500 dark:text-gray-400">Diễn viên</p>
                   <p>{movie.actors || 'N/A'}</p>
                 </div>
               </div>
@@ -159,6 +184,11 @@ export default async function MovieDetail({ params }: PageProps) {
 
           {/* Showtimes column - Client-side component */}
           <MovieDetailClient movieId={movie.id} />
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-12">
+          <CommentList movieId={movie.id} initialComments={initialComments} />
         </div>
       </div>
     </div>

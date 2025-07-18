@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import BackgroundGradient from "@/components/BackgroundGradient";
 
 export default function LoginPage() {
@@ -59,12 +58,9 @@ export default function LoginPage() {
         setFormError("Invalid email or password");
         setIsLoading(false);
       } else if (result?.ok) {
-        // Đăng nhập thành công, redirect về trang được yêu cầu
 
-        // Đảm bảo callbackUrl hợp lệ và không phải là trang login
         const redirectUrl = callbackUrl && callbackUrl !== "/login" ? callbackUrl : "/";
 
-        // Sử dụng window.location để đảm bảo redirect hoạt động
         window.location.href = redirectUrl;
       }
     } catch (error) {
@@ -87,8 +83,8 @@ export default function LoginPage() {
           {/* Left side - Form */}
           <div className="bg-white dark:bg-gray-800 p-8 sm:p-10 flex flex-col justify-center">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Welcome back!</h1>
-              <p className="text-gray-600 dark:text-gray-400">Sign in to continue to MovieTix</p>
+              <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Chào mừng trở lại!</h1>
+              <p className="text-gray-600 dark:text-gray-400">Đăng nhập để tiếp tục sử dụng MovieTix</p>
             </div>
 
             {showSuccessMessage && (
@@ -96,7 +92,7 @@ export default function LoginPage() {
                 <div className="shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center mr-3">
                   <span className="text-green-800 dark:text-green-200 text-sm">✓</span>
                 </div>
-                <p>Registration successful! Please log in with your new account.</p>
+                <p>Đăng ký thành công! Vui lòng đăng nhập bằng tài khoản mới của bạn.</p>
               </div>
             )}
 
@@ -111,7 +107,7 @@ export default function LoginPage() {
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email Address
+                  Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -121,7 +117,7 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Nhập email của bạn"
                     required
                     className="block w-full pl-10 pr-3 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                     value={formData.email}
@@ -133,7 +129,7 @@ export default function LoginPage() {
               {/* Password */}
               <div>
                 <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex justify-between">
-                  <span>Password</span>
+                  <span>Mật khẩu</span>
                   {/* <Link href="/forgot-password" className="text-primary-600 dark:text-primary-400 hover:underline text-sm font-normal">
                     Forgot password?
                   </Link> */}
@@ -146,7 +142,7 @@ export default function LoginPage() {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Nhập mật khẩu của bạn"
                     required
                     className="block w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                     value={formData.password}
@@ -205,7 +201,7 @@ export default function LoginPage() {
                   ) : (
                     <>
                       <LogIn className="h-5 w-5" />
-                      Sign In
+                      Đăng nhập
                     </>
                   )}
                 </button>
@@ -235,7 +231,7 @@ export default function LoginPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      Signing In...
+                      Đang đăng nhập...
                     </>
                   ) : (
                     <>
@@ -246,7 +242,7 @@ export default function LoginPage() {
                         height={30}
                         className="object-contain bg-white"
                       />
-                      Sign In with Google
+                      Đăng nhập với Google
                     </>
                   )}
                 </button>
@@ -254,9 +250,9 @@ export default function LoginPage() {
 
               <div>
                 <p className="text-gray-600 dark:text-gray-400 text-center mt-4">
-                  Don&apos;t have an account?{" "}
+                  Bạn chưa có tài khoản?{" "}
                   <Link href="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                    Sign up
+                    Đăng ký ngay
                   </Link>
                 </p>
               </div>
@@ -267,9 +263,9 @@ export default function LoginPage() {
           <div className="hidden md:block bg-gradient-to-br from-primary-500 to-primary-800 relative overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center p-8">
               <div className="text-white max-w-md text-center">
-                <h2 className="text-3xl font-bold mb-4">Movie magic awaits you</h2>
+                <h2 className="text-3xl font-bold mb-4">Phép thuật điện ảnh đang chờ bạn</h2>
                 <p className="text-white/80 text-lg">
-                  Sign in to book tickets for the latest blockbusters and enjoy an immersive cinema experience
+                  Đăng nhập để đặt vé cho các phim mới nhất và tận hưởng trải nghiệm điện ảnh toàn diện
                 </p>
                 <div className="mx-auto mt-8 w-64 h-32">
                   <svg viewBox="0 0 300 150" className="w-full h-full drop-shadow-lg">
