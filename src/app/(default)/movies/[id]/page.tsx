@@ -17,9 +17,8 @@ interface PageProps {
 // Fetch movie data at build time
 async function getMovie(id: string): Promise<Movie | null> {
   try {
-    // Fallback to API if not in mock data
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/movies/${id}`, {
-      next: { revalidate: 3600 } // Revalidate every hour
+      next: { revalidate: 3600 }
     });
 
     if (!response.ok) {
@@ -28,7 +27,6 @@ async function getMovie(id: string): Promise<Movie | null> {
 
     const data = await response.json();
 
-    // Handle different response structures
     return data.data?.data || data.data || data || null;
   } catch (error) {
     console.error('Error fetching movie:', error);
@@ -41,7 +39,7 @@ async function getMovieComments(movieId: string): Promise<Comment[]> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/movie-review/movie/${movieId}?page=1&limit=10&sortBy=newest`,
-      { next: { revalidate: 300 } } // Revalidate every 5 minutes
+      { next: { revalidate: 300 } } 
     );
 
     if (!response.ok) {
@@ -62,32 +60,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!movie) {
     return {
-      title: 'Movie Not Found',
-      description: 'The requested movie could not be found.',
+      title: 'Không tìm thấy phim',
+      description: 'Bộ phim được yêu cầu không thể tìm thấy.',
     };
   }
 
   return {
-    title: `${movie.title} - Movie Booking`,
-    description: movie.synopsis || `Watch ${movie.title} in theaters. Book your tickets now!`,
+    title: `${movie.title}`,
+    description: movie.synopsis || `Xem ${movie.title} tại rạp. Đặt vé ngay bây giờ!`,
     keywords: [
       movie.title,
       ...(movie.genres || []),
-      'movie',
-      'cinema',
-      'tickets',
-      'booking'
+      'phim',
+      'rạp chiếu phim',
+      'vé phim',
+      'đặt vé'
     ].join(', '),
     openGraph: {
       title: movie.title,
-      description: movie.synopsis || `Watch ${movie.title} in theaters`,
+      description: movie.synopsis || `Xem ${movie.title} tại rạp`,
       images: movie.posterPath ? [movie.posterPath] : [],
       type: 'video.movie',
     },
     twitter: {
       card: 'summary_large_image',
       title: movie.title,
-      description: movie.synopsis || `Watch ${movie.title} in theaters`,
+      description: movie.synopsis || `Xem ${movie.title} tại rạp`,
       images: movie.posterPath ? [movie.posterPath] : [],
     },
   };

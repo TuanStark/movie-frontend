@@ -26,29 +26,56 @@ async function getTheaters(): Promise<Theater[]> {
 }
 
 // Generate metadata for SEO
+// export async function generateMetadata(): Promise<Metadata> {
+//   return {
+//     title: 'Our Theaters - Cinema Booking',
+//     description: 'Find the perfect cinema location for your movie experience. Each theater offers premium sound and visual quality.',
+//     keywords: [
+//       'theaters',
+//       'cinema',
+//       'movie theaters',
+//       'tickets',
+//       'booking',
+//       'locations',
+//       'IMAX',
+//       'premium seating'
+//     ].join(', '),
+//     openGraph: {
+//       title: 'Our Theaters - Cinema Booking',
+//       description: 'Find the perfect cinema location for your movie experience.',
+//       type: 'website',
+//     },
+//     twitter: {
+//       card: 'summary_large_image',
+//       title: 'Our Theaters - Cinema Booking',
+//       description: 'Find the perfect cinema location for your movie experience.',
+//     },
+//   };
+// }
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Our Theaters - Cinema Booking',
-    description: 'Find the perfect cinema location for your movie experience. Each theater offers premium sound and visual quality.',
+    title: 'Rạp chiếu phim của chúng tôi',
+    description: 'Tìm địa điểm chiếu phim lý tưởng cho trải nghiệm xem phim của bạn. Mỗi rạp đều cung cấp chất lượng âm thanh và hình ảnh cao cấp.',
     keywords: [
-      'theaters',
-      'cinema',
-      'movie theaters',
-      'tickets',
-      'booking',
-      'locations',
+      'rạp chiếu phim',
+      'điện ảnh',
+      'rạp phim',
+      'vé phim',
+      'đặt vé',
+      'địa điểm',
       'IMAX',
-      'premium seating'
+      'ghế cao cấp',
+      ''
     ].join(', '),
     openGraph: {
-      title: 'Our Theaters - Cinema Booking',
-      description: 'Find the perfect cinema location for your movie experience.',
+      title: 'Rạp chiếu phim của chúng tôi - Đặt vé xem phim',
+      description: 'Tìm địa điểm rạp chiếu phim lý tưởng cho trải nghiệm xem phim của bạn.',
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Our Theaters - Cinema Booking',
-      description: 'Find the perfect cinema location for your movie experience.',
+      title: 'Rạp chiếu phim của chúng tôi - Đặt vé xem phim',
+      description: 'Tìm địa điểm rạp chiếu phim lý tưởng cho trải nghiệm xem phim của bạn.',
     },
   };
 }

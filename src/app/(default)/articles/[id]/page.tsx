@@ -43,14 +43,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${article.title} - Cinema News`,
+    title: `${article.title}`,
     description: article.excerpt,
     keywords: [
       article.title,
-      'cinema',
-      'movies',
-      'news',
-      'articles'
+      'điện ảnh',
+      'phim ảnh',
+      'tin tức',
+      'bài viết'
     ].join(', '),
     openGraph: {
       title: article.title,
@@ -67,19 +67,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ArticleDetailPage({params} : PageProps) {
+export default async function ArticleDetailPage({ params }: PageProps) {
   const article = await getArticleById(params.id);
 
   if (!article) {
     notFound();
   }
-  
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      
+
       {/* Article Header */}
       <div className="relative h-[50vh] md:h-[60vh]">
-        <Image 
+        <Image
           src={article.imagePath}
           alt={article.title}
           fill
@@ -87,10 +87,10 @@ export default async function ArticleDetailPage({params} : PageProps) {
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
-        
+
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 max-w-7xl mx-auto">
           <div className="mb-4">
-            <Link 
+            <Link
               href="/articles"
               className="inline-flex items-center text-white hover:text-primary-300 transition-colors"
             >
@@ -98,7 +98,7 @@ export default async function ArticleDetailPage({params} : PageProps) {
               Quay lại danh sách bài viết
             </Link>
           </div>
-          
+
           <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary-500/90 text-white text-sm font-medium mb-4">
             {article.category?.name}
           </div>
@@ -131,7 +131,7 @@ export default async function ArticleDetailPage({params} : PageProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Article Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-10">
@@ -141,7 +141,7 @@ export default async function ArticleDetailPage({params} : PageProps) {
               {article.excerpt}
             </p>
           </div>
-          
+
           {/* Article content - generated paragraphs from content */}
           <div className="prose prose-lg dark:prose-invert max-w-none">
             {Array.from({ length: 5 }).map((_, index) => {
@@ -158,7 +158,7 @@ export default async function ArticleDetailPage({params} : PageProps) {
                   </div>
                 );
               }
-              
+
               return (
                 <p key={index} className="mb-6 text-gray-700 dark:text-gray-300">
                   {article.content} {article.content}
@@ -166,7 +166,7 @@ export default async function ArticleDetailPage({params} : PageProps) {
               );
             })}
           </div>
-          
+
           {/* Share buttons */}
           <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
